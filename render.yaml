@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: wasender-skripsi
+    runtime: node
+    plan: free
+    region: singapore
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: FONNTE_TOKEN
+        value: FgFdxBWRkzb5GuLgRPtv
+      - key: PDF_TOKEN_EXPIRY
+        value: 604800
+      - key: SEND_DELAY_MS
+        value: 2000
