@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Slip Gaji — PayRoll WhatsApp Manager</title>
+  <meta name="description" content="Kelola dan kirim slip gaji via WhatsApp">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/public/css/style.css">
+  <style>
+    .file-list { display: flex; flex-direction: column; gap: 4px; margin-top: 8px; }
+    .file-item {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 12px;
+      background: rgba(99,102,241,0.06);
+      border: 1px solid rgba(99,102,241,0.15);
+      border-radius: 8px;
+      font-size: 12px;
+    }
+    .file-item .fi-name { flex:1; color: var(--text-secondary); font-weight:500; }
+    .file-item .fi-size { color: var(--text-muted); }
+    .file-item .fi-remove { background:none;border:none;color:var(--danger);cursor:pointer;font-size:14px;padding:0 }
+
+    .send-progress {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .job-detail-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(148,163,184,0.06);
+      font-size: 13px;
+    }
+    .job-detail-item:last-child { border-bottom: none; }
+
+    #pdf-frame {
+      width: 100%;
+      height: 75vh;
+      border: none;
+      border-radius: 8px;
+      background: #fff;
+    }
+  </style>
+</head>
+<body>
+<div id="toast-container"></div>
+<div id="sidebar-overlay" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:99;display:none"></div>
+
+<div class="app-layout">
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <div class="sidebar-logo-icon">💼</div>
+        <div class="sidebar-logo-text">
+          <span class="app-name">PayRoll Manager</span>
+          <span class="app-sub">WhatsApp Sender</span>
+        </div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-label">Menu Utama</div>
+      <a class="nav-item" data-href="/dashboard" href="/dashboard"><span class="nav-icon">📊</span> Dashboard</a>
+      <a class="nav-item" data-href="/karyawan" href="/karyawan"><span class="nav-icon">👥</span> Manajemen Karyawan</a>
+      <a class="nav-item active" data-href="/slipgaji" href="/slipgaji"><span class="nav-icon">📄</span> Slip Gaji</a>
+      <div class="nav-label" style="margin-top:16px">Pengaturan</div>
+      <button class="nav-item danger" onclick="logout()"><span class="nav-icon">🚪</span> Logout</button>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <div class="user-avatar" id="user-avatar">A</div>
+        <div class="user-details">
+          <div class="user-name" id="user-name">Admin</div>
+          <div class="user-role">Administrator</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <div class="main-content">
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:12px">
+        <button class="hamburger" id="hamburger-btn">☰</button>
+        <div class="topbar-left">
+          <h1>Slip Gaji</h1>
+          <p>Upload, preview, dan kirim slip gaji via WhatsApp</p>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn btn-primary" onclick="openUploadModal()">📤 Tambah File</button>
+        <button class="btn btn-success" onclick="openKirimModal()" id="btn-kirim">
+          📱 Kirim ke WhatsApp
+        </button>
+      </div>
+    </div>
+
+    <div class="page-content">
+      <!-- FILTER BAR -->
+      <div class="card" style="margin-bottom:20px">
+        <div class="card-body" style="padding:16px 20px">
+          <div class="filter-bar">
+            <label style="font-size:13px;color:var(--text-secondary);font-weight:500">Filter Periode:</label>
+            <select class="filter-select" id="filter-bulan">
+              <option value="">-- Semua Bulan --</option>
+            </select>
+            <select class="filter-select" id="filter-tahun">
+              <option value="">-- Semua Tahun --</option>
+            </select>
+            <button class="btn btn-secondary btn-sm" onclick="loadSlipGaji()">🔍 Filter</button>
+            <button class="btn btn-secondary btn-sm" onclick="clearFilter()">✕ Reset</button>
+            <span id="filter-count" style="font-size:13px;color:var(--text-muted);margin-left:8px"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- JOB PROGRESS (hidden by default) -->
+      <div id="job-progress-wrap" style="display:none" class="send-progress">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <span style="font-size:14px;font-weight:700">📱 Proses Pengiriman WhatsApp</span>
+          <button class="btn btn-secondary btn-sm" onclick="toggleJobDetail()">📋 Detail</button>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px">
+          <div style="text-align:center;padding:12px;background:rgba(99,102,241,0.08);border-radius:10px">
+            <div style="font-size:22px;font-weight:800" id="jp-total">0</div>
+            <div style="font-size:11px;color:var(--text-muted)">Total</div>
+          </div>
+          <div style="text-align:center;padding:12px;background:rgba(16,185,129,0.08);border-radius:10px">
+            <div style="font-size:22px;font-weight:800;color:var(--accent)" id="jp-berhasil">0</div>
+            <div style="font-size:11px;color:var(--text-muted)">Berhasil</div>
+          </div>
+          <div style="text-align:center;padding:12px;background:rgba(239,68,68,0.08);border-radius:10px">
+            <div style="font-size:22px;font-weight:800;color:var(--danger)" id="jp-gagal">0</div>
+            <div style="font-size:11px;color:var(--text-muted)">Gagal</div>
+          </div>
+          <div style="text-align:center;padding:12px;background:rgba(245,158,11,0.08);border-radius:10px">
+            <div style="font-size:22px;font-weight:800;color:var(--warning)" id="jp-menunggu">0</div>
+            <div style="font-size:11px;color:var(--text-muted)">Menunggu</div>
+          </div>
+        </div>
+        <div class="progress-bar-wrap" style="margin-bottom:8px">
+          <div class="progress-bar" id="jp-progress-bar" style="width:0%"></div>
+        </div>
+        <div style="font-size:12px;color:var(--text-muted);text-align:right" id="jp-status-text">Memproses...</div>
+        <div id="job-detail-list" style="display:none;margin-top:16px;max-height:300px;overflow-y:auto"></div>
+      </div>
+
+      <!-- TABLE -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">📄 Daftar File Slip Gaji</span>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-secondary btn-sm" onclick="loadSlipGaji()">🔄 Refresh</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:44px">No.</th>
+                <th>Karyawan</th>
+                <th>File PDF</th>
+                <th>Periode</th>
+                <th>Upload</th>
+                <th>Status</th>
+                <th>Alasan Gagal</th>
+                <th style="width:200px">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="slip-body">
+              <tr><td colspan="8">
+                <div class="empty-state"><div class="empty-icon">⏳</div><p>Memuat data...</p></div>
+              </td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- UPLOAD MODAL -->
+<div class="modal-overlay" id="modal-upload">
+  <div class="modal modal-xl">
+    <div class="modal-header">
+      <span class="modal-title">📤 Upload File Slip Gaji</span>
+      <button class="modal-close" onclick="closeModal('modal-upload')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+        <div class="form-group" style="margin:0">
+          <label class="form-label">Bulan *</label>
+          <select id="upload-bulan" class="form-control">
+            <option value="">-- Pilih Bulan --</option>
+          </select>
+        </div>
+        <div class="form-group" style="margin:0">
+          <label class="form-label">Tahun *</label>
+          <select id="upload-tahun" class="form-control">
+            <option value="">-- Pilih Tahun --</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Karyawan (opsional — digunakan jika nama file tidak terbaca)</label>
+        <select id="upload-karyawan" class="form-control">
+          <option value="">-- Pilih jika nama file tidak sesuai format --</option>
+        </select>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:4px">
+          Format nama file: <code style="color:var(--primary-light)">NamaKaryawan_Bulan_Tahun.pdf</code>
+          (contoh: Grace_Oktober_2026.pdf)
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">File PDF *</label>
+        <div
+          class="upload-area"
+          id="upload-area"
+          onclick="document.getElementById('file-input').click()"
+          ondragover="handleDragOver(event)"
+          ondragleave="handleDragLeave(event)"
+          ondrop="handleDrop(event)"
+        >
+          <div class="upload-icon">📁</div>
+          <p><span>Klik untuk memilih file</span> atau seret file PDF ke sini</p>
+          <p style="font-size:11px;color:var(--text-muted);margin-top:6px">
+            Mendukung beberapa file sekaligus. Maks. 10MB per file.
+          </p>
+        </div>
+        <input type="file" id="file-input" accept=".pdf,application/pdf" multiple style="display:none" onchange="handleFileSelect(event)">
+        <div class="file-list" id="file-list"></div>
+      </div>
+
+      <!-- Upload progress -->
+      <div id="upload-progress" style="display:none">
+        <div class="progress-bar-wrap">
+          <div class="progress-bar" id="upload-bar" style="width:0%"></div>
+        </div>
+        <div id="upload-results" style="margin-top:10px;max-height:200px;overflow-y:auto;font-size:12px"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-upload')">Batal</button>
+      <button class="btn btn-primary" id="upload-btn" onclick="doUpload()">📤 Upload</button>
+    </div>
+  </div>
+</div>
+
+<!-- KIRIM MODAL -->
+<div class="modal-overlay" id="modal-kirim">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">📱 Kirim Slip Gaji via WhatsApp</span>
+      <button class="modal-close" onclick="closeModal('modal-kirim')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="background:rgba(99,102,241,0.06);border:1px solid rgba(99,102,241,0.15);border-radius:12px;padding:16px;margin-bottom:16px">
+        <div id="kirim-summary" style="font-size:13px;color:var(--text-secondary);line-height:1.8">
+          Memuat ringkasan...
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Tanggal Pembayaran Gaji *</label>
+        <input type="text" id="kirim-tanggal" class="form-control" placeholder="Contoh: 25 Oktober 2026">
+        <div style="font-size:11px;color:var(--text-muted);margin-top:4px">
+          Tanggal ini akan dicantumkan dalam pesan WhatsApp yang dikirimkan.
+        </div>
+      </div>
+      <div style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:10px;padding:12px;font-size:12px;color:#fbbf24">
+        ⚠️ Pastikan token Fonnte API sudah dikonfigurasi di file .env dan APP_BASE_URL menggunakan URL HTTPS yang dapat diakses publik.
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-kirim')">Batal</button>
+      <button class="btn btn-success" id="kirim-btn" onclick="doKirim()">
+        📱 Kirim Sekarang
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- PDF PREVIEW MODAL -->
+<div class="modal-overlay" id="modal-preview">
+  <div class="modal modal-xxl" style="height:90vh;display:flex;flex-direction:column">
+    <div class="modal-header" style="flex-shrink:0">
+      <span class="modal-title" id="preview-title">📄 Preview PDF</span>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="btn btn-secondary btn-sm" id="preview-download-btn">⬇️ Unduh</button>
+        <button class="modal-close" onclick="closePdfPreview()">✕</button>
+      </div>
+    </div>
+    <div style="flex:1;padding:16px;overflow:hidden">
+      <iframe id="pdf-frame" src="" title="PDF Preview"></iframe>
+    </div>
+  </div>
+</div>
+
+<script src="/public/js/app.js"></script>
+<script>
+const BULAN_NAMES_FULL = ['','Januari','Februari','Maret','April','Mei','Juni',
+  'Juli','Agustus','September','Oktober','November','Desember'];
+
+let selectedFiles = [];
+let slipData = [];
+let currentJobId = null;
+let jobPollInterval = null;
+
+// ============ INIT ============
+function initFilters() {
+  const bulanSel = document.getElementById('filter-bulan');
+  const tahunSel = document.getElementById('filter-tahun');
+  const now = new Date();
+
+  BULAN_NAMES_FULL.slice(1).forEach((b, i) => {
+    const o = new Option(b, i+1);
+    if(i+1 === now.getMonth()+1) o.selected = true;
+    bulanSel.appendChild(o);
+  });
+
+  for(let y = now.getFullYear()+1; y>=2020; y--) {
+    const o = new Option(y, y);
+    if(y === now.getFullYear()) o.selected = true;
+    tahunSel.appendChild(o);
+  }
+}
+
+function initUploadModal() {
+  const bulanSel = document.getElementById('upload-bulan');
+  const tahunSel = document.getElementById('upload-tahun');
+  const now = new Date();
+
+  BULAN_NAMES_FULL.slice(1).forEach((b, i) => {
+    const o = new Option(b, i+1);
+    if(i+1 === now.getMonth()+1) o.selected = true;
+    bulanSel.appendChild(o);
+  });
+
+  for(let y = now.getFullYear()+1; y>=2020; y--) {
+    const o = new Option(y, y);
+    if(y === now.getFullYear()) o.selected = true;
+    tahunSel.appendChild(o);
+  }
+}
+
+async function loadKaryawanOptions() {
+  const res = await apiRequest('GET', '/api/karyawan');
+  const sel = document.getElementById('upload-karyawan');
+  sel.innerHTML = '<option value="">-- Pilih jika nama file tidak sesuai format --</option>';
+  if(res && res.success) {
+    res.data.forEach(k => {
+      sel.appendChild(new Option(k.nama, k.id));
+    });
+  }
+}
+
+// ============ LOAD SLIP ============
+async function loadSlipGaji() {
+  const bulan = document.getElementById('filter-bulan').value;
+  const tahun = document.getElementById('filter-tahun').value;
+
+  let url = '/api/slipgaji';
+  const p = [];
+  if(bulan) p.push(`bulan=${bulan}`);
+  if(tahun) p.push(`tahun=${tahun}`);
+  if(p.length) url += '?'+p.join('&');
+
+  const tbody = document.getElementById('slip-body');
+  tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state"><div class="empty-icon">⏳</div><p>Memuat data...</p></div></td></tr>`;
+
+  const res = await apiRequest('GET', url);
+  if(!res || !res.success) {
+    tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state"><p>Gagal memuat data.</p></div></td></tr>`;
+    return;
+  }
+
+  slipData = res.data;
+  document.getElementById('filter-count').textContent = `${res.total} file ditemukan`;
+  renderSlipTable(slipData);
+}
+
+function renderSlipTable(data) {
+  const tbody = document.getElementById('slip-body');
+
+  if(data.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state"><div class="empty-icon">📄</div><p>Belum ada file slip gaji. <button onclick="openUploadModal()" class="btn btn-primary btn-sm" style="margin-left:8px">Upload Sekarang</button></p></div></td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = data.map((s, i) => `
+    <tr>
+      <td style="color:var(--text-muted);font-size:12px">${i+1}</td>
+      <td>
+        <div style="font-weight:600;font-size:13px">${escHtml(s.namaKaryawan)}</div>
+        <div style="font-size:11px;color:var(--text-muted)">${s.karyawanId}</div>
+      </td>
+      <td>
+        <div style="font-size:13px;color:var(--text-secondary)">${escHtml(s.originalName)}</div>
+        <div style="font-size:11px;color:var(--text-muted)">${formatSize(s.ukuran)}</div>
+      </td>
+      <td>
+        <span class="badge badge-info">${s.bulanNama} ${s.tahun}</span>
+      </td>
+      <td style="font-size:12px;color:var(--text-muted)">${formatDateShort(s.uploadedAt)}</td>
+      <td>${statusBadge(s.statusPengiriman)}</td>
+      <td style="font-size:11px;color:var(--danger);max-width:150px">
+        ${s.errorPengiriman ? `<span title="${escHtml(s.errorPengiriman)}">${s.errorPengiriman.slice(0,60)}${s.errorPengiriman.length>60?'...':''}</span>` : '-'}
+      </td>
+      <td>
+        <div class="td-actions">
+          <button class="btn btn-secondary btn-sm" onclick="previewPdf('${s.id}','${escHtml(s.originalName)}')" title="Preview">👁️</button>
+          <a class="btn btn-secondary btn-sm" href="/api/slipgaji/${s.id}/download" title="Unduh" download>⬇️</a>
+          ${s.statusPengiriman === 'gagal' ? `<button class="btn btn-warning btn-sm" onclick="retryKirim('${s.id}')" title="Kirim Ulang">🔄</button>` : ''}
+          <button class="btn btn-danger btn-sm" onclick="deleteSlip('${s.id}','${escHtml(s.originalName)}')" title="Hapus">🗑️</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function clearFilter() {
+  document.getElementById('filter-bulan').value = '';
+  document.getElementById('filter-tahun').value = '';
+  loadSlipGaji();
+}
+
+// ============ UPLOAD ============
+function openUploadModal() {
+  selectedFiles = [];
+  renderFileList();
+  document.getElementById('upload-progress').style.display = 'none';
+  document.getElementById('file-input').value = '';
+  document.getElementById('upload-btn').disabled = false;
+  document.getElementById('upload-btn').textContent = '📤 Upload';
+  loadKaryawanOptions();
+  document.getElementById('modal-upload').classList.add('active');
+}
+
+function handleFileSelect(e) {
+  Array.from(e.target.files).forEach(f => addFile(f));
+}
+
+function handleDragOver(e) {
+  e.preventDefault();
+  document.getElementById('upload-area').classList.add('dragover');
+}
+
+function handleDragLeave(e) {
+  document.getElementById('upload-area').classList.remove('dragover');
+}
+
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('upload-area').classList.remove('dragover');
+  Array.from(e.dataTransfer.files).forEach(f => addFile(f));
+}
+
+function addFile(f) {
+  if(!f.name.toLowerCase().endsWith('.pdf')) {
+    showToast('error', 'Format Salah', `${f.name} bukan file PDF.`);
+    return;
+  }
+  const maxSize = parseInt('10485760');
+  if(f.size > maxSize) {
+    showToast('error', 'File Terlalu Besar', `${f.name} melebihi batas 10MB.`);
+    return;
+  }
+  if(selectedFiles.some(x => x.name === f.name)) {
+    showToast('warning', 'Duplikat', `${f.name} sudah ditambahkan.`);
+    return;
+  }
+  selectedFiles.push(f);
+  renderFileList();
+}
+
+function removeFile(idx) {
+  selectedFiles.splice(idx, 1);
+  renderFileList();
+}
+
+function renderFileList() {
+  const el = document.getElementById('file-list');
+  if(!selectedFiles.length) { el.innerHTML = ''; return; }
+  el.innerHTML = selectedFiles.map((f, i) => `
+    <div class="file-item">
+      <span>📄</span>
+      <span class="fi-name">${escHtml(f.name)}</span>
+      <span class="fi-size">${formatSize(f.size)}</span>
+      <button class="fi-remove" onclick="removeFile(${i})" title="Hapus">✕</button>
+    </div>
+  `).join('');
+}
+
+async function doUpload() {
+  const bulan = document.getElementById('upload-bulan').value;
+  const tahun = document.getElementById('upload-tahun').value;
+  const karyawanId = document.getElementById('upload-karyawan').value;
+
+  if(!bulan) return showToast('warning','Perhatian','Pilih bulan terlebih dahulu.');
+  if(!tahun) return showToast('warning','Perhatian','Pilih tahun terlebih dahulu.');
+  if(!selectedFiles.length) return showToast('warning','Perhatian','Pilih minimal satu file PDF.');
+
+  const btn = document.getElementById('upload-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="loading-spinner"></span> Mengupload...';
+
+  const progressWrap = document.getElementById('upload-progress');
+  const progressBar = document.getElementById('upload-bar');
+  const resultsEl = document.getElementById('upload-results');
+  progressWrap.style.display = 'block';
+  progressBar.style.width = '30%';
+  resultsEl.innerHTML = '';
+
+  const fd = new FormData();
+  fd.append('bulan', bulan);
+  fd.append('tahun', tahun);
+  if(karyawanId) fd.append('karyawanId', karyawanId);
+  selectedFiles.forEach(f => fd.append('files', f));
+
+  try {
+    progressBar.style.width = '60%';
+    const res = await apiUpload('/api/slipgaji/upload', fd);
+    progressBar.style.width = '100%';
+
+    if(res && res.results) {
+      resultsEl.innerHTML = res.results.map(r =>
+        `<div style="padding:4px 0;color:${r.success?'var(--accent)':'var(--danger)'}">
+          ${r.success ? '✅' : '❌'} ${escHtml(r.name)}: ${r.success ? 'Berhasil' : r.error}
+        </div>`
+      ).join('');
+
+      const berhasil = res.results.filter(r=>r.success).length;
+      showToast(berhasil > 0 ? 'success' : 'error', 'Upload Selesai', res.message);
+      if(berhasil > 0) loadSlipGaji();
+    }
+  } catch(err) {
+    showToast('error','Gagal','Terjadi kesalahan saat upload.');
+  }
+
+  btn.disabled = false;
+  btn.textContent = '📤 Upload';
+  selectedFiles = [];
+  renderFileList();
+}
+
+// ============ KIRIM ============
+async function openKirimModal() {
+  const bulan = document.getElementById('filter-bulan').value;
+  const tahun = document.getElementById('filter-tahun').value;
+
+  if(!bulan || !tahun) {
+    showToast('warning','Perhatian','Pilih bulan dan tahun terlebih dahulu sebelum mengirim.');
+    return;
+  }
+
+  // Set default tanggal
+  const now = new Date();
+  document.getElementById('kirim-tanggal').value =
+    `${now.getDate()} ${BULAN_NAMES_FULL[now.getMonth()+1]} ${now.getFullYear()}`;
+
+  const bulanLabel = BULAN_NAMES_FULL[parseInt(bulan)];
+
+  // Ambil data slip untuk periode ini
+  const res = await apiRequest('GET', `/api/slipgaji?bulan=${bulan}&tahun=${tahun}`);
+  const total = res?.data?.length || 0;
+  const belumDikirim = res?.data?.filter(s => s.statusPengiriman !== 'berhasil').length || 0;
+  const sudahBerhasil = total - belumDikirim;
+
+  document.getElementById('kirim-summary').innerHTML = `
+    <strong style="color:var(--text-primary)">Periode:</strong> ${bulanLabel} ${tahun}<br>
+    <strong style="color:var(--text-primary)">Total file:</strong> ${total} slip gaji<br>
+    <strong style="color:var(--accent)">Akan dikirim:</strong> ${belumDikirim} (belum terkirim berhasil)<br>
+    <strong style="color:var(--text-muted)">Sudah berhasil:</strong> ${sudahBerhasil} (tidak akan dikirim ulang)
+  `;
+
+  document.getElementById('modal-kirim').classList.add('active');
+}
+
+async function doKirim() {
+  const bulan = document.getElementById('filter-bulan').value;
+  const tahun = document.getElementById('filter-tahun').value;
+  const tanggal = document.getElementById('kirim-tanggal').value.trim();
+
+  if(!tanggal) return showToast('warning','Perhatian','Tanggal pembayaran wajib diisi.');
+
+  const btn = document.getElementById('kirim-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="loading-spinner"></span> Memulai...';
+
+  const res = await apiRequest('POST', '/api/slipgaji/kirim', {
+    bulan, tahun, tanggalPembayaran: tanggal
+  });
+
+  btn.disabled = false;
+  btn.textContent = '📱 Kirim Sekarang';
+
+  if(res && res.success) {
+    closeModal('modal-kirim');
+    currentJobId = res.jobId;
+    showJobProgress();
+    showToast('info','Pengiriman Dimulai', res.message);
+    startJobPolling();
+  } else {
+    showToast('error','Gagal', res?.message || 'Gagal memulai pengiriman.');
+  }
+}
+
+function showJobProgress() {
+  document.getElementById('job-progress-wrap').style.display = 'block';
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function toggleJobDetail() {
+  const el = document.getElementById('job-detail-list');
+  el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+function startJobPolling() {
+  if(jobPollInterval) clearInterval(jobPollInterval);
+  jobPollInterval = setInterval(pollJobStatus, 2000);
+}
+
+async function pollJobStatus() {
+  if(!currentJobId) return;
+  const res = await apiRequest('GET', `/api/pengiriman/${currentJobId}`);
+  if(!res || !res.success) return;
+
+  const job = res.data;
+  updateJobUI(job);
+
+  if(job.status === 'selesai') {
+    clearInterval(jobPollInterval);
+    jobPollInterval = null;
+    showToast('success','Pengiriman Selesai',
+      `Berhasil: ${job.berhasil}, Gagal: ${job.gagal}`);
+    loadSlipGaji();
+  }
+}
+
+function updateJobUI(job) {
+  document.getElementById('jp-total').textContent = job.total;
+  document.getElementById('jp-berhasil').textContent = job.berhasil;
+  document.getElementById('jp-gagal').textContent = job.gagal;
+  document.getElementById('jp-menunggu').textContent = job.menunggu;
+
+  const pct = job.total > 0 ? Math.round(((job.berhasil + job.gagal) / job.total) * 100) : 0;
+  document.getElementById('jp-progress-bar').style.width = pct + '%';
+
+  const statusText = job.status === 'selesai'
+    ? `✅ Selesai — ${job.berhasil} berhasil, ${job.gagal} gagal`
+    : `🔄 Mengirim... (${job.berhasil + job.gagal}/${job.total})`;
+  document.getElementById('jp-status-text').textContent = statusText;
+
+  // Detail list
+  const detailEl = document.getElementById('job-detail-list');
+  if(job.details && job.details.length > 0) {
+    detailEl.innerHTML = job.details.map(d => `
+      <div class="job-detail-item">
+        <span>${d.status === 'berhasil' ? '✅' : d.status === 'gagal' ? '❌' : '🔄'}</span>
+        <span style="flex:1;font-weight:500">${escHtml(d.namaKaryawan)}</span>
+        <span style="font-size:11px;color:var(--text-muted)">${escHtml(d.originalName || '')}</span>
+        ${d.error ? `<span style="font-size:11px;color:var(--danger);max-width:200px">${escHtml(d.error)}</span>` : ''}
+      </div>
+    `).join('');
+  }
+}
+
+// ============ PREVIEW ============
+function previewPdf(id, name) {
+  const frame = document.getElementById('pdf-frame');
+  const title = document.getElementById('preview-title');
+  const dlBtn = document.getElementById('preview-download-btn');
+
+  title.textContent = `📄 ${name}`;
+  frame.src = `/api/slipgaji/${id}/preview`;
+  dlBtn.onclick = () => { window.open(`/api/slipgaji/${id}/download`, '_blank'); };
+  document.getElementById('modal-preview').classList.add('active');
+}
+
+function closePdfPreview() {
+  document.getElementById('pdf-frame').src = '';
+  document.getElementById('modal-preview').classList.remove('active');
+}
+
+// ============ DELETE ============
+function deleteSlip(id, name) {
+  showConfirm('Hapus File', `Hapus file <strong>${name}</strong>? Tindakan ini tidak dapat dibatalkan.`, async () => {
+    const res = await apiRequest('DELETE', `/api/slipgaji/${id}`);
+    if(res && res.success) {
+      showToast('success','Berhasil',res.message);
+      loadSlipGaji();
+    } else {
+      showToast('error','Gagal', res?.message || 'Gagal menghapus file.');
+    }
+  });
+}
+
+// ============ RETRY ============
+async function retryKirim(slipId) {
+  const tanggal = prompt('Masukkan tanggal pembayaran untuk pengiriman ulang:');
+  if(!tanggal) return;
+
+  const res = await apiRequest('POST', `/api/pengiriman/${slipId}/retry`, { tanggalPembayaran: tanggal });
+  if(res) {
+    showToast(res.success ? 'success' : 'error', res.success ? 'Berhasil' : 'Gagal', res.message);
+    loadSlipGaji();
+  }
+}
+
+function escHtml(str) {
+  if(!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// Load user info
+async function loadUserInfo() {
+  const res = await apiRequest('GET', '/api/auth/me');
+  if(res && res.loggedIn) {
+    document.getElementById('user-name').textContent = res.username;
+    document.getElementById('user-avatar').textContent = res.username.charAt(0).toUpperCase();
+  }
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('active');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  initFilters();
+  initUploadModal();
+  loadUserInfo();
+  loadSlipGaji();
+});
+</script>
+</body>
+</html>

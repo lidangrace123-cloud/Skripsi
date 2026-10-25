@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manajemen Karyawan — PayRoll WhatsApp Manager</title>
+  <meta name="description" content="Kelola data karyawan dan nomor WhatsApp">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/public/css/style.css">
+</head>
+<body>
+<div id="toast-container"></div>
+<div id="sidebar-overlay" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:99;display:none"></div>
+
+<div class="app-layout">
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <div class="sidebar-logo-icon">💼</div>
+        <div class="sidebar-logo-text">
+          <span class="app-name">PayRoll Manager</span>
+          <span class="app-sub">WhatsApp Sender</span>
+        </div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-label">Menu Utama</div>
+      <a class="nav-item" data-href="/dashboard" href="/dashboard"><span class="nav-icon">📊</span> Dashboard</a>
+      <a class="nav-item active" data-href="/karyawan" href="/karyawan"><span class="nav-icon">👥</span> Manajemen Karyawan</a>
+      <a class="nav-item" data-href="/slipgaji" href="/slipgaji"><span class="nav-icon">📄</span> Slip Gaji</a>
+      <div class="nav-label" style="margin-top:16px">Pengaturan</div>
+      <button class="nav-item danger" onclick="logout()"><span class="nav-icon">🚪</span> Logout</button>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <div class="user-avatar" id="user-avatar">A</div>
+        <div class="user-details">
+          <div class="user-name" id="user-name">Admin</div>
+          <div class="user-role">Administrator</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <div class="main-content">
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:12px">
+        <button class="hamburger" id="hamburger-btn">☰</button>
+        <div class="topbar-left">
+          <h1>Manajemen Karyawan</h1>
+          <p>Kelola data dan nomor WhatsApp karyawan</p>
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="openAddModal()">
+        ➕ Tambah Karyawan
+      </button>
+    </div>
+
+    <div class="page-content">
+      <!-- Search Bar -->
+      <div class="card" style="margin-bottom:20px">
+        <div class="card-body" style="padding:16px 20px">
+          <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+            <input
+              type="text"
+              id="search-input"
+              class="form-control"
+              placeholder="🔍 Cari nama atau nomor WhatsApp..."
+              style="max-width:360px"
+              oninput="filterTable()"
+            >
+            <span id="count-label" style="font-size:13px;color:var(--text-muted)">Memuat...</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Table Card -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">👥 Daftar Karyawan</span>
+          <button class="btn btn-secondary btn-sm" onclick="loadKaryawan()">🔄 Refresh</button>
+        </div>
+        <div class="table-wrap">
+          <table id="karyawan-table">
+            <thead>
+              <tr>
+                <th style="width:50px">No.</th>
+                <th>Nama Karyawan</th>
+                <th>Nomor WhatsApp</th>
+                <th>Terdaftar</th>
+                <th style="width:160px">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="karyawan-body">
+              <tr>
+                <td colspan="5">
+                  <div class="empty-state"><div class="empty-icon">⏳</div><p>Memuat data...</p></div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ADD/EDIT MODAL -->
+<div class="modal-overlay" id="modal-karyawan">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="modal-karyawan-title">➕ Tambah Karyawan</span>
+      <button class="modal-close" onclick="closeModal('modal-karyawan')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="edit-id">
+      <div class="form-group">
+        <label class="form-label">Nama Karyawan *</label>
+        <input
+          type="text"
+          id="input-nama"
+          class="form-control"
+          placeholder="Contoh: Grace Putri"
+          maxlength="100"
+        >
+      </div>
+      <div class="form-group">
+        <label class="form-label">Nomor WhatsApp *</label>
+        <input
+          type="text"
+          id="input-nomor"
+          class="form-control"
+          placeholder="628xxxxxxxxxx (format internasional)"
+          maxlength="20"
+          oninput="autoFormatPhone(this)"
+        >
+        <div style="font-size:11px;color:var(--text-muted);margin-top:4px">
+          Format: 6281234567890 (62 + nomor tanpa 0 pertama)
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-karyawan')">Batal</button>
+      <button class="btn btn-primary" id="save-btn" onclick="saveKaryawan()">💾 Simpan</button>
+    </div>
+  </div>
+</div>
+
+<script src="/public/js/app.js"></script>
+<script>
+let karyawanData = [];
+
+async function loadKaryawan() {
+  const body = document.getElementById('karyawan-body');
+  body.innerHTML = `<tr><td colspan="5"><div class="empty-state"><div class="empty-icon">⏳</div><p>Memuat data...</p></div></td></tr>`;
+
+  const res = await apiRequest('GET', '/api/karyawan');
+  if (!res || !res.success) {
+    body.innerHTML = `<tr><td colspan="5"><div class="empty-state"><p>Gagal memuat data.</p></div></td></tr>`;
+    return;
+  }
+
+  karyawanData = res.data;
+  renderTable(karyawanData);
+}
+
+function renderTable(data) {
+  const body = document.getElementById('karyawan-body');
+  document.getElementById('count-label').textContent = `${data.length} karyawan`;
+
+  if (data.length === 0) {
+    body.innerHTML = `<tr><td colspan="5"><div class="empty-state"><div class="empty-icon">👥</div><p>Belum ada data karyawan. <a href="#" onclick="openAddModal()" style="color:var(--primary-light)">Tambahkan sekarang</a></p></div></td></tr>`;
+    return;
+  }
+
+  body.innerHTML = data.map((k, i) => `
+    <tr>
+      <td style="color:var(--text-muted);font-size:12px">${i + 1}</td>
+      <td>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#0ea5e9);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0">
+            ${k.nama.charAt(0).toUpperCase()}
+          </div>
+          <div>
+            <div style="font-weight:600">${escapeHtml(k.nama)}</div>
+            <div style="font-size:11px;color:var(--text-muted)">ID: ${k.id}</div>
+          </div>
+        </div>
+      </td>
+      <td>
+        <div style="display:flex;align-items:center;gap:6px">
+          <span style="font-size:16px">📱</span>
+          <span style="font-family:monospace;font-size:13px">+${k.nomor_whatsapp}</span>
+        </div>
+      </td>
+      <td style="font-size:12px;color:var(--text-muted)">${formatDateShort(k.createdAt)}</td>
+      <td>
+        <div class="td-actions">
+          <button class="btn btn-warning btn-sm btn-icon" onclick="openEditModal('${k.id}')" title="Edit">✏️</button>
+          <button class="btn btn-danger btn-sm btn-icon" onclick="deleteKaryawan('${k.id}', '${escapeHtml(k.nama)}')" title="Hapus">🗑️</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function filterTable() {
+  const q = document.getElementById('search-input').value.toLowerCase();
+  const filtered = karyawanData.filter(k =>
+    k.nama.toLowerCase().includes(q) ||
+    k.nomor_whatsapp.includes(q) ||
+    k.id.toLowerCase().includes(q)
+  );
+  renderTable(filtered);
+}
+
+function openAddModal() {
+  document.getElementById('modal-karyawan-title').textContent = '➕ Tambah Karyawan';
+  document.getElementById('edit-id').value = '';
+  document.getElementById('input-nama').value = '';
+  document.getElementById('input-nomor').value = '';
+  document.getElementById('save-btn').textContent = '💾 Simpan';
+  document.getElementById('modal-karyawan').classList.add('active');
+  setTimeout(() => document.getElementById('input-nama').focus(), 100);
+}
+
+function openEditModal(id) {
+  const k = karyawanData.find(x => x.id === id);
+  if (!k) return;
+  document.getElementById('modal-karyawan-title').textContent = '✏️ Edit Karyawan';
+  document.getElementById('edit-id').value = k.id;
+  document.getElementById('input-nama').value = k.nama;
+  document.getElementById('input-nomor').value = k.nomor_whatsapp;
+  document.getElementById('save-btn').textContent = '💾 Perbarui';
+  document.getElementById('modal-karyawan').classList.add('active');
+  setTimeout(() => document.getElementById('input-nama').focus(), 100);
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('active');
+}
+
+function autoFormatPhone(input) {
+  let val = input.value.replace(/\D/g, '');
+  if (val.startsWith('0')) val = '62' + val.slice(1);
+  if (!val.startsWith('62') && val.length > 0 && !val.startsWith('6')) {
+    val = '62' + val;
+  }
+  input.value = val;
+}
+
+async function saveKaryawan() {
+  const id = document.getElementById('edit-id').value;
+  const nama = document.getElementById('input-nama').value.trim();
+  const nomor = document.getElementById('input-nomor').value.trim();
+
+  if (!nama) return showToast('warning', 'Perhatian', 'Nama karyawan wajib diisi.');
+  if (!nomor) return showToast('warning', 'Perhatian', 'Nomor WhatsApp wajib diisi.');
+  if (!/^62\d{8,14}$/.test(nomor)) return showToast('error', 'Format Salah', 'Nomor WhatsApp harus format 628xxxxxxxxxx.');
+
+  const btn = document.getElementById('save-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="loading-spinner"></span> Menyimpan...';
+
+  let res;
+  if (id) {
+    res = await apiRequest('PUT', `/api/karyawan/${id}`, { nama, nomor_whatsapp: nomor });
+  } else {
+    res = await apiRequest('POST', '/api/karyawan', { nama, nomor_whatsapp: nomor });
+  }
+
+  btn.disabled = false;
+  btn.textContent = id ? '💾 Perbarui' : '💾 Simpan';
+
+  if (res && res.success) {
+    showToast('success', 'Berhasil', res.message);
+    closeModal('modal-karyawan');
+    loadKaryawan();
+  } else {
+    showToast('error', 'Gagal', res?.message || 'Terjadi kesalahan.');
+  }
+}
+
+function deleteKaryawan(id, nama) {
+  showConfirm(
+    'Hapus Karyawan',
+    `Apakah Anda yakin ingin menghapus karyawan <strong>${nama}</strong>? Riwayat pengiriman tidak akan terhapus.`,
+    async () => {
+      const res = await apiRequest('DELETE', `/api/karyawan/${id}`);
+      if (res && res.success) {
+        showToast('success', 'Berhasil', res.message);
+        loadKaryawan();
+      } else {
+        showToast('error', 'Gagal', res?.message || 'Gagal menghapus karyawan.');
+      }
+    }
+  );
+}
+
+function escapeHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// Load user info
+async function loadUserInfo() {
+  const res = await apiRequest('GET', '/api/auth/me');
+  if (res && res.loggedIn) {
+    document.getElementById('user-name').textContent = res.username;
+    document.getElementById('user-avatar').textContent = res.username.charAt(0).toUpperCase();
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  loadUserInfo();
+  loadKaryawan();
+
+  // Enter key on form inputs
+  ['input-nama', 'input-nomor'].forEach(id => {
+    document.getElementById(id).addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') saveKaryawan();
+    });
+  });
+});
+</script>
+</body>
+</html>

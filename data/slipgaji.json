@@ -1,0 +1,47 @@
+[
+  {
+    "id": "43508e8a6e5a5fba5a9611f1d65b43df",
+    "karyawanId": "EMP296884R9I",
+    "namaKaryawan": "Aurelia Amanda",
+    "namaFile": "43508e8a6e5a5fba5a9611f1d65b43df.pdf",
+    "originalName": "Aurelia Amanda_Oktober_2026.pdf",
+    "bulan": 10,
+    "bulanNama": "Oktober",
+    "tahun": 2026,
+    "ukuran": 3560,
+    "uploadedAt": "2026-10-25T09:27:08.077Z",
+    "statusPengiriman": "berhasil",
+    "errorPengiriman": null,
+    "lastSentAt": "2026-10-25T09:27:17.420Z"
+  },
+  {
+    "id": "215a9af5d5d33aba2d35c516542851be",
+    "karyawanId": "EMP8063956RO",
+    "namaKaryawan": "Bunga Tiara Pitaloka",
+    "namaFile": "215a9af5d5d33aba2d35c516542851be.pdf",
+    "originalName": "Bunga Tiara Pitaloka_Oktober_2026.pdf",
+    "bulan": 10,
+    "bulanNama": "Oktober",
+    "tahun": 2026,
+    "ukuran": 3560,
+    "uploadedAt": "2026-10-25T09:27:08.077Z",
+    "statusPengiriman": "berhasil",
+    "errorPengiriman": null,
+    "lastSentAt": "2026-10-25T09:27:19.495Z"
+  },
+  {
+    "id": "01948ae5cff7af6c6a6ecce56a1e9d6e",
+    "karyawanId": "EMP001",
+    "namaKaryawan": "Grace Lidan",
+    "namaFile": "01948ae5cff7af6c6a6ecce56a1e9d6e.pdf",
+    "originalName": "Grace Lidan_Oktober_2026.pdf",
+    "bulan": 10,
+    "bulanNama": "Oktober",
+    "tahun": 2026,
+    "ukuran": 3560,
+    "uploadedAt": "2026-10-25T09:27:08.077Z",
+    "statusPengiriman": "berhasil",
+    "errorPengiriman": null,
+    "lastSentAt": "2026-10-25T09:27:21.551Z"
+  }
+]

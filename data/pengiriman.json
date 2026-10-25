@@ -1,0 +1,110 @@
+[
+  {
+    "id": "LOG1792919069204nuhi",
+    "jobId": "JOB1792919069200",
+    "slipId": "957c24f01137fdd48b12a558fd992e4f",
+    "karyawanId": "EMP001",
+    "namaKaryawan": "Grace",
+    "nomor": "6285252543021",
+    "status": "gagal",
+    "error": "FONNTE_TOKEN belum dikonfigurasi. Silakan isi token Fonnte di file .env",
+    "pdfUrl": "http://localhost:3000/file/e449cb1a580bb1e3441615815ca20b3f441200a3f5236e2250e59c756c6f780a",
+    "sentAt": "2026-10-25T09:04:29.202Z"
+  },
+  {
+    "id": "LOG1792919238976w5xz",
+    "jobId": "JOB1792919238603",
+    "slipId": "957c24f01137fdd48b12a558fd992e4f",
+    "karyawanId": "EMP001",
+    "namaKaryawan": "Grace",
+    "nomor": "6285252543021",
+    "status": "berhasil",
+    "error": null,
+    "pdfUrl": "http://localhost:3000/file/0eeda30c6816a318126f062b4216af37a023eb5aed1b5e1500d51a3c40844589",
+    "sentAt": "2026-10-25T09:07:18.975Z"
+  },
+  {
+    "id": "LOG1792919361900je7v",
+    "jobId": "JOB1792919361668",
+    "slipId": "957c24f01137fdd48b12a558fd992e4f",
+    "karyawanId": "EMP001",
+    "namaKaryawan": "Grace",
+    "nomor": "6285252543021",
+    "status": "berhasil",
+    "error": null,
+    "pdfUrl": "http://localhost:3000/file/9c1e6ca1cb675c881b91f23b934fc770dd5a32ca8958001f266027011578a066",
+    "sentAt": "2026-10-25T09:09:21.898Z"
+  },
+  {
+    "id": "LOG17929193639676jp8",
+    "jobId": "JOB1792919361668",
+    "slipId": "eb73a95166d85ad3c6b4af36ac36eed9",
+    "karyawanId": "EMP296884R9I",
+    "namaKaryawan": "Aurel",
+    "nomor": "6282122660162",
+    "status": "berhasil",
+    "error": null,
+    "pdfUrl": "http://localhost:3000/file/5abce14b7c9b1665711529d98aa129fce0835bb6c9cc66c1c01036db01e5ccdb",
+    "sentAt": "2026-10-25T09:09:23.965Z"
+  },
+  {
+    "id": "LOG1792919394336yyil",
+    "jobId": "JOB1792919394096",
+    "slipId": "957c24f01137fdd48b12a558fd992e4f",
+    "karyawanId": "EMP001",
+    "namaKaryawan": "Grace",
+    "nomor": "6285252543021",
+    "status": "berhasil",
+    "error": null,
+    "pdfUrl": "http://localhost:3000/file/18907e8e4f717b789ecdc28d609c68abe53241a987e01fb73ca257530c3271ec",
+    "sentAt": "2026-10-25T09:09:54.335Z"
+  },
+  {
+    "id": "LOG1792919396419pqms",
+    "jobId": "JOB1792919394096",
+    "slipId": "eb73a95166d85ad3c6b4af36ac36eed9",
+    "karyawanId": "EMP296884R9I",
+    "namaKaryawan": "Aurel",
+    "nomor": "6282155367083",
+    "status": "berhasil",
+    "error": null,
+    "pdfUrl": "http://localhost:3000/file/f1ca8af2dd3a3623ea6124f8bf5aed01f4b0eeab78c999729bc6031f1592cd56",
+    "sentAt": "2026-10-25T09:09:56.418Z"
+  },
+  {
+    "id": "LOG17929204374217wc6",
+    "jobId": "JOB1792920437150",
+    "slipId": "43508e8a6e5a5fba5a9611f1d65b43df",
+    "karyawanId": "EMP296884R9I",
+    "namaKaryawan": "Aurelia Amanda",
+    "nomor": "6282155367083",
+    "status": "berhasil",
+    "error": null,
+    "pdfUrl": "http://localhost:3000/file/2d0bd4cfe01c000560dd90728da7d0dee54cfc5d9ab5af3c7a4edd932a06b78d",
+    "sentAt": "2026-10-25T09:27:17.419Z"
+  },
+  {
+    "id": "LOG1792920439496fasx",
+    "jobId": "JOB1792920437150",
+    "slipId": "215a9af5d5d33aba2d35c516542851be",
+    "karyawanId": "EMP8063956RO",
+    "namaKaryawan": "Bunga Tiara Pitaloka",
+    "nomor": "6282213622853",
+    "status": "berhasil",
+    "error": null,
+    "pdfUrl": "http://localhost:3000/file/330387c84bf83b3390d34d588278f94b238cf1f1e4c20e7419ba176cf258bcfb",
+    "sentAt": "2026-10-25T09:27:19.494Z"
+  },
+  {
+    "id": "LOG179292044155212rd",
+    "jobId": "JOB1792920437150",
+    "slipId": "01948ae5cff7af6c6a6ecce56a1e9d6e",
+    "karyawanId": "EMP001",
+    "namaKaryawan": "Grace Lidan",
+    "nomor": "6285252543021",
+    "status": "berhasil",
+    "error": null,
+    "pdfUrl": "http://localhost:3000/file/b596f3c3465b2e8ebae73588c335ca5ed13b6e151488284de9bff510627532ef",
+    "sentAt": "2026-10-25T09:27:21.551Z"
+  }
+]

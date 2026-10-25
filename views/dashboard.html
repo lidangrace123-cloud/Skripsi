@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard — PayRoll WhatsApp Manager</title>
+  <meta name="description" content="Dashboard admin pengelolaan slip gaji karyawan">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/public/css/style.css">
+</head>
+<body>
+<div id="toast-container"></div>
+<div id="sidebar-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:99" class=""></div>
+
+<div class="app-layout">
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <div class="sidebar-logo-icon">💼</div>
+        <div class="sidebar-logo-text">
+          <span class="app-name">PayRoll Manager</span>
+          <span class="app-sub">WhatsApp Sender</span>
+        </div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-label">Menu Utama</div>
+      <a class="nav-item active" data-href="/dashboard" href="/dashboard">
+        <span class="nav-icon">📊</span> Dashboard
+      </a>
+      <a class="nav-item" data-href="/karyawan" href="/karyawan">
+        <span class="nav-icon">👥</span> Manajemen Karyawan
+      </a>
+      <a class="nav-item" data-href="/slipgaji" href="/slipgaji">
+        <span class="nav-icon">📄</span> Slip Gaji
+      </a>
+
+      <div class="nav-label" style="margin-top:16px">Pengaturan</div>
+      <button class="nav-item" onclick="showChangePassword()">
+        <span class="nav-icon">🔑</span> Ganti Password
+      </button>
+      <button class="nav-item danger" onclick="logout()">
+        <span class="nav-icon">🚪</span> Logout
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <div class="user-avatar" id="user-avatar">A</div>
+        <div class="user-details">
+          <div class="user-name" id="user-name">Admin</div>
+          <div class="user-role">Administrator</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <div class="main-content">
+    <!-- TOP BAR -->
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:12px">
+        <button class="hamburger" id="hamburger-btn" aria-label="Toggle sidebar">☰</button>
+        <div class="topbar-left">
+          <h1>Dashboard</h1>
+          <p>Selamat datang kembali, <span id="topbar-username">Admin</span> 👋</p>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div class="filter-bar">
+          <select class="filter-select" id="filter-bulan">
+            <option value="">-- Semua Bulan --</option>
+          </select>
+          <select class="filter-select" id="filter-tahun">
+            <option value="">-- Semua Tahun --</option>
+          </select>
+          <button class="btn btn-primary btn-sm" onclick="loadStats()">🔄 Refresh</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE CONTENT -->
+    <div class="page-content">
+      <!-- STATS GRID -->
+      <div class="stats-grid" id="stats-grid">
+        <div class="stat-card primary">
+          <div class="stat-icon">👥</div>
+          <div class="stat-value" id="stat-karyawan">-</div>
+          <div class="stat-label">Total Karyawan</div>
+        </div>
+        <div class="stat-card secondary">
+          <div class="stat-icon">📄</div>
+          <div class="stat-value" id="stat-slip-total">-</div>
+          <div class="stat-label">Total File Slip</div>
+        </div>
+        <div class="stat-card info">
+          <div class="stat-icon">📅</div>
+          <div class="stat-value" id="stat-slip-periode">-</div>
+          <div class="stat-label">Slip Periode Ini</div>
+        </div>
+        <div class="stat-card success">
+          <div class="stat-icon">✅</div>
+          <div class="stat-value" id="stat-berhasil">-</div>
+          <div class="stat-label">Terkirim Berhasil</div>
+        </div>
+        <div class="stat-card danger">
+          <div class="stat-icon">❌</div>
+          <div class="stat-value" id="stat-gagal">-</div>
+          <div class="stat-label">Pengiriman Gagal</div>
+        </div>
+        <div class="stat-card warning">
+          <div class="stat-icon">🔄</div>
+          <div class="stat-value" id="stat-diproses">-</div>
+          <div class="stat-label">Diproses</div>
+        </div>
+      </div>
+
+      <!-- CHARTS / INFO ROW -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px" id="info-row">
+        <!-- Quick Links -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">🚀 Aksi Cepat</span>
+          </div>
+          <div class="card-body" style="display:flex;flex-direction:column;gap:10px">
+            <a href="/karyawan" class="btn btn-secondary" style="justify-content:flex-start">
+              <span>👥</span> Kelola Data Karyawan
+            </a>
+            <a href="/slipgaji" class="btn btn-secondary" style="justify-content:flex-start">
+              <span>📤</span> Upload Slip Gaji
+            </a>
+            <a href="/slipgaji" class="btn btn-success" style="justify-content:flex-start">
+              <span>📱</span> Kirim Slip via WhatsApp
+            </a>
+          </div>
+        </div>
+
+        <!-- Riwayat Pengiriman Terbaru -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">📋 Riwayat Pengiriman Terbaru</span>
+          </div>
+          <div class="card-body" style="padding:0">
+            <div id="recent-history">
+              <div class="empty-state" style="padding:24px">
+                <div class="empty-icon">📭</div>
+                <p>Memuat riwayat...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PERIOD OVERVIEW -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">📊 Status Pengiriman Periode Ini</span>
+        </div>
+        <div class="card-body">
+          <div id="period-overview">
+            <div class="empty-state">
+              <div class="empty-icon">📈</div>
+              <p>Pilih bulan dan tahun untuk melihat statistik.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CHANGE PASSWORD MODAL -->
+<div class="modal-overlay" id="modal-password">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">🔑 Ganti Password</span>
+      <button class="modal-close" onclick="closeModal('modal-password')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Password Saat Ini</label>
+        <input type="password" id="cur-password" class="form-control" placeholder="Password saat ini">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password Baru (min. 6 karakter)</label>
+        <input type="password" id="new-password" class="form-control" placeholder="Password baru">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Konfirmasi Password Baru</label>
+        <input type="password" id="confirm-password" class="form-control" placeholder="Ulangi password baru">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-password')">Batal</button>
+      <button class="btn btn-primary" onclick="changePassword()">💾 Simpan</button>
+    </div>
+  </div>
+</div>
+
+<script src="/public/js/app.js"></script>
+<script>
+const BULAN_NAMES_FULL = ['', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+  'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+
+// Init filter dropdowns
+function initFilters() {
+  const bulanSel = document.getElementById('filter-bulan');
+  const tahunSel = document.getElementById('filter-tahun');
+  const now = new Date();
+
+  BULAN_NAMES_FULL.slice(1).forEach((b, i) => {
+    const opt = document.createElement('option');
+    opt.value = i + 1;
+    opt.textContent = b;
+    if (i + 1 === now.getMonth() + 1) opt.selected = true;
+    bulanSel.appendChild(opt);
+  });
+
+  for (let y = now.getFullYear() + 1; y >= 2020; y--) {
+    const opt = document.createElement('option');
+    opt.value = y;
+    opt.textContent = y;
+    if (y === now.getFullYear()) opt.selected = true;
+    tahunSel.appendChild(opt);
+  }
+
+  bulanSel.addEventListener('change', loadStats);
+  tahunSel.addEventListener('change', loadStats);
+}
+
+async function loadStats() {
+  const bulan = document.getElementById('filter-bulan').value;
+  const tahun = document.getElementById('filter-tahun').value;
+
+  let url = '/api/slipgaji/stats';
+  const params = [];
+  if (bulan) params.push(`bulan=${bulan}`);
+  if (tahun) params.push(`tahun=${tahun}`);
+  if (params.length) url += '?' + params.join('&');
+
+  try {
+    const res = await apiRequest('GET', url);
+    if (res && res.success) {
+      const d = res.data;
+      document.getElementById('stat-karyawan').textContent = d.totalKaryawan;
+      document.getElementById('stat-slip-total').textContent = d.totalSlip;
+      document.getElementById('stat-slip-periode').textContent = d.slipPeriodeIni;
+      document.getElementById('stat-berhasil').textContent = d.berhasil;
+      document.getElementById('stat-gagal').textContent = d.gagal;
+      document.getElementById('stat-diproses').textContent = d.diproses;
+      renderPeriodOverview(d, bulan, tahun);
+    }
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+function renderPeriodOverview(d, bulan, tahun) {
+  const el = document.getElementById('period-overview');
+  if (!bulan && !tahun) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">📈</div><p>Pilih bulan dan tahun untuk melihat statistik.</p></div>`;
+    return;
+  }
+
+  const total = d.slipPeriodeIni || 1;
+  const berhasilPct = Math.round((d.berhasil / total) * 100);
+  const gagalPct = Math.round((d.gagal / total) * 100);
+  const menungguPct = Math.round((d.menunggu / total) * 100);
+
+  const bulanLabel = bulan ? BULAN_NAMES_FULL[parseInt(bulan)] : 'Semua';
+  const tahunLabel = tahun || 'Semua';
+
+  el.innerHTML = `
+    <div style="margin-bottom:16px">
+      <p style="font-size:13px;color:var(--text-secondary)">
+        Periode: <strong style="color:var(--primary-light)">${bulanLabel} ${tahunLabel}</strong> — 
+        Total ${d.slipPeriodeIni} slip gaji
+      </p>
+    </div>
+    <div style="display:grid;gap:16px">
+      <div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+          <span style="font-size:13px;color:var(--accent)">✅ Berhasil</span>
+          <span style="font-size:13px;font-weight:600">${d.berhasil} / ${d.slipPeriodeIni}</span>
+        </div>
+        <div class="progress-bar-wrap">
+          <div class="progress-bar" style="width:${berhasilPct}%;background:linear-gradient(90deg,#10b981,#059669)"></div>
+        </div>
+      </div>
+      <div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+          <span style="font-size:13px;color:var(--danger)">❌ Gagal</span>
+          <span style="font-size:13px;font-weight:600">${d.gagal} / ${d.slipPeriodeIni}</span>
+        </div>
+        <div class="progress-bar-wrap">
+          <div class="progress-bar" style="width:${gagalPct}%;background:linear-gradient(90deg,#ef4444,#dc2626)"></div>
+        </div>
+      </div>
+      <div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+          <span style="font-size:13px;color:var(--text-muted)">⏳ Belum Dikirim</span>
+          <span style="font-size:13px;font-weight:600">${d.menunggu} / ${d.slipPeriodeIni}</span>
+        </div>
+        <div class="progress-bar-wrap">
+          <div class="progress-bar" style="width:${menungguPct}%;background:linear-gradient(90deg,#64748b,#475569)"></div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+async function loadRecentHistory() {
+  try {
+    const res = await apiRequest('GET', '/api/pengiriman');
+    const el = document.getElementById('recent-history');
+
+    if (!res || !res.success || res.data.length === 0) {
+      el.innerHTML = `<div class="empty-state" style="padding:24px"><div class="empty-icon">📭</div><p>Belum ada riwayat pengiriman.</p></div>`;
+      return;
+    }
+
+    const rows = res.data.slice(0, 5).map(h => `
+      <div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <div style="font-size:13px;font-weight:600">${h.namaKaryawan}</div>
+          <div style="font-size:11px;color:var(--text-muted)">${formatDateShort(h.sentAt)}</div>
+        </div>
+        ${statusBadge(h.status)}
+      </div>
+    `).join('');
+
+    el.innerHTML = rows;
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+function showChangePassword() {
+  document.getElementById('modal-password').classList.add('active');
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('active');
+}
+
+async function changePassword() {
+  const cur = document.getElementById('cur-password').value;
+  const nw = document.getElementById('new-password').value;
+  const cnf = document.getElementById('confirm-password').value;
+
+  if (!cur || !nw || !cnf) return showToast('warning', 'Perhatian', 'Semua field wajib diisi.');
+  if (nw !== cnf) return showToast('error', 'Gagal', 'Password baru tidak cocok.');
+  if (nw.length < 6) return showToast('error', 'Gagal', 'Password baru minimal 6 karakter.');
+
+  const res = await apiRequest('POST', '/api/auth/change-password', {
+    currentPassword: cur, newPassword: nw
+  });
+
+  if (res && res.success) {
+    showToast('success', 'Berhasil', res.message);
+    closeModal('modal-password');
+    document.getElementById('cur-password').value = '';
+    document.getElementById('new-password').value = '';
+    document.getElementById('confirm-password').value = '';
+  } else {
+    showToast('error', 'Gagal', res?.message || 'Terjadi kesalahan.');
+  }
+}
+
+// Load user info
+async function loadUserInfo() {
+  const res = await apiRequest('GET', '/api/auth/me');
+  if (res && res.loggedIn) {
+    const name = res.username;
+    document.getElementById('user-name').textContent = name;
+    document.getElementById('topbar-username').textContent = name;
+    document.getElementById('user-avatar').textContent = name.charAt(0).toUpperCase();
+  }
+}
+
+// Init
+document.addEventListener('DOMContentLoaded', () => {
+  initFilters();
+  loadUserInfo();
+  loadStats();
+  loadRecentHistory();
+});
+</script>
+</body>
+</html>
