@@ -1,15 +1,13 @@
 // ============================================
-// KARYAWAN ROUTES
+// KARYAWAN ROUTES (MongoDB version)
 // CRUD Data Karyawan
 // ============================================
 const express = require('express');
 const path = require('path');
-const { v4: uuidv4 } = require('uuid');
-const { readJSON, writeJSON } = require('../utils/dataStore');
+const { Karyawan } = require('../utils/models');
 const { requireAuth } = require('../middleware/authMiddleware');
 
 const router = express.Router();
-const KARYAWAN_PATH = path.join(__dirname, '../data/karyawan.json');
 
 // Validasi data karyawan
 function validateKaryawan(data) {
@@ -36,7 +34,7 @@ router.get('/karyawan', requireAuth, (req, res) => {
 // GET /api/karyawan - Ambil semua karyawan
 router.get('/api/karyawan', requireAuth, async (req, res) => {
   try {
-    const data = await readJSON(KARYAWAN_PATH);
+    const data = await Karyawan.find().sort({ createdAt: 1 }).lean();
     res.json({ success: true, data });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Gagal membaca data karyawan.' });
@@ -46,8 +44,7 @@ router.get('/api/karyawan', requireAuth, async (req, res) => {
 // GET /api/karyawan/:id - Detail karyawan
 router.get('/api/karyawan/:id', requireAuth, async (req, res) => {
   try {
-    const data = await readJSON(KARYAWAN_PATH);
-    const karyawan = data.find(k => k.id === req.params.id);
+    const karyawan = await Karyawan.findOne({ id: req.params.id }).lean();
     if (!karyawan) return res.status(404).json({ success: false, message: 'Karyawan tidak ditemukan.' });
     res.json({ success: true, data: karyawan });
   } catch (err) {
@@ -61,23 +58,21 @@ router.post('/api/karyawan', requireAuth, async (req, res) => {
   if (errors.length > 0) return res.status(400).json({ success: false, message: errors.join(' ') });
 
   try {
-    const data = await readJSON(KARYAWAN_PATH);
     const cleaned = req.body.nomor_whatsapp.replace(/\D/g, '');
 
     // Cek duplikat nomor
-    if (data.some(k => k.nomor_whatsapp === cleaned)) {
+    const exists = await Karyawan.findOne({ nomor_whatsapp: cleaned });
+    if (exists) {
       return res.status(409).json({ success: false, message: 'Nomor WhatsApp sudah terdaftar.' });
     }
 
-    const newKaryawan = {
+    const newKaryawan = await Karyawan.create({
       id: 'EMP' + String(Date.now()).slice(-6) + Math.random().toString(36).slice(2, 5).toUpperCase(),
       nama: req.body.nama.trim(),
       nomor_whatsapp: cleaned,
-      createdAt: new Date().toISOString()
-    };
+      createdAt: new Date()
+    });
 
-    data.push(newKaryawan);
-    await writeJSON(KARYAWAN_PATH, data);
     res.status(201).json({ success: true, message: 'Karyawan berhasil ditambahkan.', data: newKaryawan });
   } catch (err) {
     console.error(err);
@@ -91,26 +86,22 @@ router.put('/api/karyawan/:id', requireAuth, async (req, res) => {
   if (errors.length > 0) return res.status(400).json({ success: false, message: errors.join(' ') });
 
   try {
-    const data = await readJSON(KARYAWAN_PATH);
-    const idx = data.findIndex(k => k.id === req.params.id);
-    if (idx === -1) return res.status(404).json({ success: false, message: 'Karyawan tidak ditemukan.' });
-
     const cleaned = req.body.nomor_whatsapp.replace(/\D/g, '');
 
     // Cek duplikat nomor (kecuali dirinya sendiri)
-    if (data.some((k, i) => i !== idx && k.nomor_whatsapp === cleaned)) {
+    const duplicate = await Karyawan.findOne({ nomor_whatsapp: cleaned, id: { $ne: req.params.id } });
+    if (duplicate) {
       return res.status(409).json({ success: false, message: 'Nomor WhatsApp sudah digunakan karyawan lain.' });
     }
 
-    data[idx] = {
-      ...data[idx],
-      nama: req.body.nama.trim(),
-      nomor_whatsapp: cleaned,
-      updatedAt: new Date().toISOString()
-    };
+    const updated = await Karyawan.findOneAndUpdate(
+      { id: req.params.id },
+      { nama: req.body.nama.trim(), nomor_whatsapp: cleaned, updatedAt: new Date() },
+      { new: true }
+    );
 
-    await writeJSON(KARYAWAN_PATH, data);
-    res.json({ success: true, message: 'Data karyawan berhasil diperbarui.', data: data[idx] });
+    if (!updated) return res.status(404).json({ success: false, message: 'Karyawan tidak ditemukan.' });
+    res.json({ success: true, message: 'Data karyawan berhasil diperbarui.', data: updated });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Gagal memperbarui data.' });
   }
@@ -119,13 +110,8 @@ router.put('/api/karyawan/:id', requireAuth, async (req, res) => {
 // DELETE /api/karyawan/:id - Hapus karyawan
 router.delete('/api/karyawan/:id', requireAuth, async (req, res) => {
   try {
-    const data = await readJSON(KARYAWAN_PATH);
-    const idx = data.findIndex(k => k.id === req.params.id);
-    if (idx === -1) return res.status(404).json({ success: false, message: 'Karyawan tidak ditemukan.' });
-
-    const deleted = data.splice(idx, 1)[0];
-    await writeJSON(KARYAWAN_PATH, data);
-    // Catatan: riwayat pengiriman TIDAK dihapus untuk audit
+    const deleted = await Karyawan.findOneAndDelete({ id: req.params.id });
+    if (!deleted) return res.status(404).json({ success: false, message: 'Karyawan tidak ditemukan.' });
     res.json({ success: true, message: `Karyawan ${deleted.nama} berhasil dihapus.` });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Gagal menghapus data.' });

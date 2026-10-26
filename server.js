@@ -9,6 +9,7 @@ const path = require('path');
 const fs = require('fs');
 const helmet = require('helmet');
 const morgan = require('morgan');
+const { connectDB } = require('./utils/db');
 
 const authRoutes = require('./routes/auth');
 const karyawanRoutes = require('./routes/karyawan');
@@ -20,26 +21,12 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // ============================================
-// Ensure required directories exist
+// Ensure public directories exist
 // ============================================
-['data', 'uploads/slipgaji', 'public/css', 'public/js'].forEach(dir => {
+['public/css', 'public/js'].forEach(dir => {
   const fullPath = path.join(__dirname, dir);
   if (!fs.existsSync(fullPath)) {
     fs.mkdirSync(fullPath, { recursive: true });
-  }
-});
-
-// Ensure data JSON files exist
-const dataFiles = {
-  'data/karyawan.json': [],
-  'data/slipgaji.json': [],
-  'data/pengiriman.json': [],
-  'data/admin.json': []
-};
-Object.entries(dataFiles).forEach(([filePath, defaultVal]) => {
-  const full = path.join(__dirname, filePath);
-  if (!fs.existsSync(full)) {
-    fs.writeFileSync(full, JSON.stringify(defaultVal, null, 2));
   }
 });
 
@@ -124,23 +111,30 @@ app.use((err, req, res, next) => {
 });
 
 // ============================================
-// Start Server
+// Start Server (connect DB first)
 // ============================================
-app.listen(PORT, () => {
-  console.log('');
-  console.log('╔══════════════════════════════════════════════╗');
-  console.log('║      PayRoll WhatsApp Manager - AKTIF        ║');
-  console.log('╠══════════════════════════════════════════════╣');
-  console.log(`║  URL: http://localhost:${PORT}                 ║`);
-  console.log(`║  Mode: ${process.env.NODE_ENV || 'development'}                        ║`);
-  console.log('╠══════════════════════════════════════════════╣');
-  console.log('║  Login: admin / admin123                     ║');
-  console.log('╚══════════════════════════════════════════════╝');
-  console.log('');
-  if (!process.env.FONNTE_TOKEN || process.env.FONNTE_TOKEN === 'ISI_TOKEN_FONNTE_ANDA_DI_SINI') {
-    console.warn('⚠️  PERINGATAN: FONNTE_TOKEN belum dikonfigurasi di .env');
-  }
-  if (process.env.APP_BASE_URL === 'http://localhost:3000') {
-    console.warn('⚠️  PERINGATAN: APP_BASE_URL masih localhost. Gunakan URL HTTPS untuk pengiriman WhatsApp.');
-  }
-});
+connectDB()
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log('');
+      console.log('╔══════════════════════════════════════════════╗');
+      console.log('║      PayRoll WhatsApp Manager - AKTIF        ║');
+      console.log('╠══════════════════════════════════════════════╣');
+      console.log(`║  URL: http://localhost:${PORT}                 ║`);
+      console.log(`║  Mode: ${process.env.NODE_ENV || 'development'}                        ║`);
+      console.log('╠══════════════════════════════════════════════╣');
+      console.log('║  Login: admin / admin123                     ║');
+      console.log('╚══════════════════════════════════════════════╝');
+      console.log('');
+      if (!process.env.FONNTE_TOKEN || process.env.FONNTE_TOKEN === 'ISI_TOKEN_FONNTE_ANDA_DI_SINI') {
+        console.warn('⚠️  PERINGATAN: FONNTE_TOKEN belum dikonfigurasi di .env');
+      }
+      if (process.env.APP_BASE_URL === 'http://localhost:3000') {
+        console.warn('⚠️  PERINGATAN: APP_BASE_URL masih localhost. Gunakan URL HTTPS untuk pengiriman WhatsApp.');
+      }
+    });
+  })
+  .catch(err => {
+    console.error('❌ Gagal koneksi database, server tidak jalan:', err.message);
+    process.exit(1);
+  });

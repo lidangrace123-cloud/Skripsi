@@ -1,21 +1,17 @@
 // ============================================
-// PENGIRIMAN ROUTES
+// PENGIRIMAN ROUTES (MongoDB version)
 // Bulk WhatsApp sending & retry
 // ============================================
 const express = require('express');
-const path = require('path');
-const { readJSON, writeJSON } = require('../utils/dataStore');
+const { SlipGaji, Karyawan, Pengiriman } = require('../utils/models');
 const { requireAuth } = require('../middleware/authMiddleware');
 const { sendWhatsApp, isValidPhone } = require('../services/fonnteService');
 const {
   generateAccessToken,
-  buildWhatsAppMessage,
-  SLIP_DATA_PATH
+  buildWhatsAppMessage
 } = require('../services/slipGajiService');
 
 const router = express.Router();
-const KARYAWAN_PATH = path.join(__dirname, '../data/karyawan.json');
-const PENGIRIMAN_PATH = path.join(__dirname, '../data/pengiriman.json');
 
 // Job store (in-memory progress tracker)
 const jobStore = {};
@@ -31,16 +27,16 @@ router.post('/api/slipgaji/kirim', requireAuth, async (req, res) => {
   }
 
   try {
-    const slipList = await readJSON(SLIP_DATA_PATH);
-    const karyawanList = await readJSON(KARYAWAN_PATH);
-
-    const targetSlips = slipList.filter(
-      s => s.bulan === parseInt(bulan) && s.tahun === parseInt(tahun)
-    );
+    const targetSlips = await SlipGaji.find({
+      bulan: parseInt(bulan),
+      tahun: parseInt(tahun)
+    }).lean();
 
     if (targetSlips.length === 0) {
       return res.status(404).json({ success: false, message: 'Tidak ada slip gaji untuk periode tersebut.' });
     }
+
+    const karyawanList = await Karyawan.find().lean();
 
     // Buat job ID unik
     const jobId = 'JOB' + Date.now();
@@ -74,7 +70,6 @@ async function processKirim(jobId, targetSlips, karyawanList, tanggalPembayaran)
   const job = jobStore[jobId];
   const delayMs = parseInt(process.env.SEND_DELAY_MS || 2000);
   const baseUrl = process.env.APP_BASE_URL || `http://localhost:${process.env.PORT || 3000}`;
-  const pengirimanList = await readJSON(PENGIRIMAN_PATH);
 
   for (const slip of targetSlips) {
     job.diproses++;
@@ -142,44 +137,41 @@ async function processKirim(jobId, targetSlips, karyawanList, tanggalPembayaran)
     // Update status slip
     await updateSlipStatus(slip.id, detail.status, detail.error);
 
-    // Simpan riwayat pengiriman
-    pengirimanList.push({
-      id: 'LOG' + Date.now() + Math.random().toString(36).slice(2, 6),
-      jobId,
-      slipId: slip.id,
-      karyawanId: karyawan.id,
-      namaKaryawan: karyawan.nama,
-      nomor: karyawan.nomor_whatsapp,
-      status: detail.status,
-      error: detail.error || null,
-      pdfUrl: detail.pdfUrl,
-      sentAt: detail.finishedAt || new Date().toISOString()
-    });
+    // Simpan riwayat pengiriman ke MongoDB
+    try {
+      await Pengiriman.create({
+        id: 'LOG' + Date.now() + Math.random().toString(36).slice(2, 6),
+        jobId,
+        slipId: slip.id,
+        karyawanId: karyawan.id,
+        namaKaryawan: karyawan.nama,
+        nomor: karyawan.nomor_whatsapp,
+        status: detail.status,
+        error: detail.error || null,
+        pdfUrl: detail.pdfUrl,
+        sentAt: new Date()
+      });
+    } catch (e) {
+      console.error('Gagal simpan riwayat:', e.message);
+    }
 
     await delay(delayMs);
   }
 
   job.status = 'selesai';
   job.finishedAt = new Date().toISOString();
-
-  // Simpan riwayat
-  try {
-    await writeJSON(PENGIRIMAN_PATH, pengirimanList);
-  } catch (e) {
-    console.error('Gagal menyimpan riwayat pengiriman:', e.message);
-  }
 }
 
 async function updateSlipStatus(slipId, status, errorMsg) {
   try {
-    const slipList = await readJSON(SLIP_DATA_PATH);
-    const idx = slipList.findIndex(s => s.id === slipId);
-    if (idx !== -1) {
-      slipList[idx].statusPengiriman = status;
-      slipList[idx].errorPengiriman = errorMsg || null;
-      slipList[idx].lastSentAt = new Date().toISOString();
-      await writeJSON(SLIP_DATA_PATH, slipList);
-    }
+    await SlipGaji.findOneAndUpdate(
+      { id: slipId },
+      {
+        statusPengiriman: status,
+        errorPengiriman: errorMsg || null,
+        lastSentAt: new Date()
+      }
+    );
   } catch (err) {
     console.error('Gagal update status slip:', err.message);
   }
@@ -189,7 +181,6 @@ async function updateSlipStatus(slipId, status, errorMsg) {
 router.get('/api/pengiriman/:jobId', requireAuth, async (req, res) => {
   const job = jobStore[req.params.jobId];
   if (!job) {
-    // Cari dari riwayat
     return res.status(404).json({ success: false, message: 'Job tidak ditemukan.' });
   }
   res.json({ success: true, data: job });
@@ -198,9 +189,8 @@ router.get('/api/pengiriman/:jobId', requireAuth, async (req, res) => {
 // GET /api/pengiriman - Riwayat pengiriman
 router.get('/api/pengiriman', requireAuth, async (req, res) => {
   try {
-    const data = await readJSON(PENGIRIMAN_PATH);
-    data.sort((a, b) => new Date(b.sentAt) - new Date(a.sentAt));
-    res.json({ success: true, data: data.slice(0, 100) }); // limit 100
+    const data = await Pengiriman.find().sort({ sentAt: -1 }).limit(100).lean();
+    res.json({ success: true, data });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Gagal membaca riwayat.' });
   }
@@ -210,20 +200,16 @@ router.get('/api/pengiriman', requireAuth, async (req, res) => {
 router.post('/api/pengiriman/:slipId/retry', requireAuth, async (req, res) => {
   const { tanggalPembayaran } = req.body;
   try {
-    const slipList = await readJSON(SLIP_DATA_PATH);
-    const karyawanList = await readJSON(KARYAWAN_PATH);
-
-    const slip = slipList.find(s => s.id === req.params.slipId);
+    const slip = await SlipGaji.findOne({ id: req.params.slipId }).lean();
     if (!slip) return res.status(404).json({ success: false, message: 'Slip tidak ditemukan.' });
 
-    const karyawan = karyawanList.find(k => k.id === slip.karyawanId);
+    const karyawan = await Karyawan.findOne({ id: slip.karyawanId }).lean();
     if (!karyawan) return res.status(404).json({ success: false, message: 'Karyawan tidak ditemukan.' });
 
     if (!isValidPhone(karyawan.nomor_whatsapp)) {
       return res.status(400).json({ success: false, message: 'Nomor WhatsApp tidak valid.' });
     }
 
-    // Update status to diproses
     await updateSlipStatus(slip.id, 'diproses', null);
 
     const baseUrl = process.env.APP_BASE_URL || `http://localhost:${process.env.PORT || 3000}`;
@@ -237,8 +223,7 @@ router.post('/api/pengiriman/:slipId/retry', requireAuth, async (req, res) => {
     await updateSlipStatus(slip.id, status, result.error);
 
     // Log
-    const pengirimanList = await readJSON(PENGIRIMAN_PATH);
-    pengirimanList.push({
+    await Pengiriman.create({
       id: 'LOG' + Date.now(),
       jobId: 'RETRY',
       slipId: slip.id,
@@ -248,9 +233,8 @@ router.post('/api/pengiriman/:slipId/retry', requireAuth, async (req, res) => {
       status,
       error: result.error || null,
       pdfUrl,
-      sentAt: new Date().toISOString()
+      sentAt: new Date()
     });
-    await writeJSON(PENGIRIMAN_PATH, pengirimanList);
 
     res.json({
       success: result.success,

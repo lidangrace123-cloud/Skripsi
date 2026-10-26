@@ -1,32 +1,23 @@
 // ============================================
-// SLIP GAJI ROUTES
+// SLIP GAJI ROUTES (MongoDB + Cloudinary version)
 // Upload, List, Preview, Download, Delete PDF
 // ============================================
 const express = require('express');
 const path = require('path');
-const fs = require('fs');
 const multer = require('multer');
-const { readJSON, writeJSON } = require('../utils/dataStore');
+const { SlipGaji, Karyawan } = require('../utils/models');
 const { requireAuth } = require('../middleware/authMiddleware');
+const { uploadPDF, deletePDF } = require('../utils/cloudinaryHelper');
 const {
   generateAccessToken,
   validateToken,
-  getPDFPath,
-  parseFileName,
   BULAN_NAMES,
-  UPLOAD_DIR,
-  SLIP_DATA_PATH
+  parseFileName
 } = require('../services/slipGajiService');
 
 const router = express.Router();
-const KARYAWAN_PATH = path.join(__dirname, '../data/karyawan.json');
 
-// Pastikan folder upload ada
-if (!fs.existsSync(UPLOAD_DIR)) {
-  fs.mkdirSync(UPLOAD_DIR, { recursive: true });
-}
-
-// Multer config - simpan ke memory dulu untuk validasi
+// Multer config - simpan ke memory untuk validasi & upload ke Cloudinary
 const storage = multer.memoryStorage();
 const upload = multer({
   storage,
@@ -52,21 +43,18 @@ router.get('/slipgaji', requireAuth, (req, res) => {
 router.get('/api/slipgaji', requireAuth, async (req, res) => {
   try {
     const { bulan, tahun } = req.query;
-    let data = await readJSON(SLIP_DATA_PATH);
+    const filter = {};
+    if (bulan) filter.bulan = parseInt(bulan);
+    if (tahun) filter.tahun = parseInt(tahun);
 
-    if (bulan) data = data.filter(s => s.bulan === parseInt(bulan));
-    if (tahun) data = data.filter(s => s.tahun === parseInt(tahun));
-
-    // Urutkan terbaru
-    data.sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt));
-
+    const data = await SlipGaji.find(filter).sort({ uploadedAt: -1 }).lean();
     res.json({ success: true, data, total: data.length });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Gagal membaca data slip gaji.' });
   }
 });
 
-// POST /api/slipgaji/upload - Upload PDF
+// POST /api/slipgaji/upload - Upload PDF ke Cloudinary
 router.post('/api/slipgaji/upload', requireAuth, upload.array('files', 20), async (req, res) => {
   if (!req.files || req.files.length === 0) {
     return res.status(400).json({ success: false, message: 'Tidak ada file yang diunggah.' });
@@ -83,9 +71,7 @@ router.post('/api/slipgaji/upload', requireAuth, upload.array('files', 20), asyn
     return res.status(400).json({ success: false, message: 'Bulan atau tahun tidak valid.' });
   }
 
-  const karyawanList = await readJSON(KARYAWAN_PATH);
-  const slipList = await readJSON(SLIP_DATA_PATH);
-
+  const karyawanList = await Karyawan.find().lean();
   const results = [];
 
   for (const file of req.files) {
@@ -119,38 +105,36 @@ router.post('/api/slipgaji/upload', requireAuth, upload.array('files', 20), asyn
       continue;
     }
 
-    // Generate nama file aman
+    // Generate ID unik
     const safeId = require('crypto').randomBytes(16).toString('hex');
     const bulanNama = BULAN_NAMES[bulanInt];
-    const safeFileName = `${safeId}.pdf`;
-    const destPath = path.join(UPLOAD_DIR, safeFileName);
 
     try {
-      fs.writeFileSync(destPath, file.buffer);
-    } catch (writeErr) {
-      results.push({ name: file.originalname, success: false, error: 'Gagal menyimpan file.' });
-      continue;
+      // Upload ke Cloudinary
+      const { url, publicId } = await uploadPDF(file.buffer, safeId);
+
+      const newSlip = await SlipGaji.create({
+        id: safeId,
+        karyawanId: matchedKaryawan.id,
+        namaKaryawan: matchedKaryawan.nama,
+        namaFile: publicId,         // cloudinary public_id untuk delete
+        originalName: file.originalname,
+        cloudinaryUrl: url,         // URL langsung ke Cloudinary
+        bulan: bulanInt,
+        bulanNama,
+        tahun: tahunInt,
+        ukuran: file.size,
+        uploadedAt: new Date(),
+        statusPengiriman: 'belum_dikirim'
+      });
+
+      results.push({ name: file.originalname, success: true, data: newSlip });
+    } catch (uploadErr) {
+      console.error('Upload error:', uploadErr);
+      results.push({ name: file.originalname, success: false, error: 'Gagal upload ke cloud storage.' });
     }
-
-    const newSlip = {
-      id: safeId,
-      karyawanId: matchedKaryawan.id,
-      namaKaryawan: matchedKaryawan.nama,
-      namaFile: safeFileName,
-      originalName: file.originalname,
-      bulan: bulanInt,
-      bulanNama,
-      tahun: tahunInt,
-      ukuran: file.size,
-      uploadedAt: new Date().toISOString(),
-      statusPengiriman: 'belum_dikirim'
-    };
-
-    slipList.push(newSlip);
-    results.push({ name: file.originalname, success: true, data: newSlip });
   }
 
-  await writeJSON(SLIP_DATA_PATH, slipList);
   const berhasil = results.filter(r => r.success).length;
   const gagal = results.filter(r => !r.success).length;
 
@@ -161,33 +145,28 @@ router.post('/api/slipgaji/upload', requireAuth, upload.array('files', 20), asyn
   });
 });
 
-// GET /api/slipgaji/:id/preview - Preview PDF inline (requires auth OR valid token)
+// GET /api/slipgaji/:id/preview - Preview PDF inline (redirect ke Cloudinary URL)
 router.get('/api/slipgaji/:id/preview', requireAuth, async (req, res) => {
   try {
-    const filePath = await getPDFPath(req.params.id);
-    if (!filePath) return res.status(404).json({ success: false, message: 'File tidak ditemukan.' });
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', 'inline');
-    res.setHeader('X-Content-Type-Options', 'nosniff');
-    res.sendFile(filePath);
+    const slip = await SlipGaji.findOne({ id: req.params.id });
+    if (!slip || !slip.cloudinaryUrl) {
+      return res.status(404).json({ success: false, message: 'File tidak ditemukan.' });
+    }
+    // Redirect ke URL Cloudinary
+    res.redirect(slip.cloudinaryUrl);
   } catch (err) {
     res.status(500).json({ success: false, message: 'Gagal memuat PDF.' });
   }
 });
 
-// GET /api/slipgaji/:id/download - Download PDF (admin)
+// GET /api/slipgaji/:id/download - Download PDF
 router.get('/api/slipgaji/:id/download', requireAuth, async (req, res) => {
   try {
-    const slipList = await readJSON(SLIP_DATA_PATH);
-    const slip = slipList.find(s => s.id === req.params.id);
-    if (!slip) return res.status(404).json({ success: false, message: 'File tidak ditemukan.' });
-
-    const filePath = await getPDFPath(req.params.id);
-    if (!filePath) return res.status(404).json({ success: false, message: 'File tidak ditemukan di server.' });
-
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename="${slip.originalName}"`);
-    res.sendFile(filePath);
+    const slip = await SlipGaji.findOne({ id: req.params.id });
+    if (!slip || !slip.cloudinaryUrl) {
+      return res.status(404).json({ success: false, message: 'File tidak ditemukan.' });
+    }
+    res.redirect(slip.cloudinaryUrl);
   } catch (err) {
     res.status(500).json({ success: false, message: 'Gagal mengunduh file.' });
   }
@@ -201,16 +180,11 @@ router.get('/file/:token', async (req, res) => {
   }
 
   try {
-    const slipList = await readJSON(SLIP_DATA_PATH);
-    const slip = slipList.find(s => s.id === fileId);
-    if (!slip) return res.status(404).send('<h2>File tidak ditemukan.</h2>');
-
-    const filePath = await getPDFPath(fileId);
-    if (!filePath) return res.status(404).send('<h2>File tidak ditemukan di server.</h2>');
-
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `inline; filename="${slip.originalName}"`);
-    res.sendFile(filePath);
+    const slip = await SlipGaji.findOne({ id: fileId });
+    if (!slip || !slip.cloudinaryUrl) {
+      return res.status(404).send('<h2>File tidak ditemukan.</h2>');
+    }
+    res.redirect(slip.cloudinaryUrl);
   } catch (err) {
     res.status(500).send('<h2>Terjadi kesalahan server.</h2>');
   }
@@ -219,20 +193,15 @@ router.get('/file/:token', async (req, res) => {
 // DELETE /api/slipgaji/:id - Hapus file dan metadata
 router.delete('/api/slipgaji/:id', requireAuth, async (req, res) => {
   try {
-    const slipList = await readJSON(SLIP_DATA_PATH);
-    const idx = slipList.findIndex(s => s.id === req.params.id);
-    if (idx === -1) return res.status(404).json({ success: false, message: 'File tidak ditemukan.' });
+    const slip = await SlipGaji.findOne({ id: req.params.id });
+    if (!slip) return res.status(404).json({ success: false, message: 'File tidak ditemukan.' });
 
-    const slip = slipList[idx];
-    const filePath = path.join(UPLOAD_DIR, slip.namaFile);
-
-    // Hapus file fisik
-    if (fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath);
+    // Hapus dari Cloudinary
+    if (slip.namaFile) {
+      await deletePDF(slip.namaFile);
     }
 
-    slipList.splice(idx, 1);
-    await writeJSON(SLIP_DATA_PATH, slipList);
+    await SlipGaji.deleteOne({ id: req.params.id });
     res.json({ success: true, message: `File ${slip.originalName} berhasil dihapus.` });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Gagal menghapus file.' });
@@ -243,16 +212,19 @@ router.delete('/api/slipgaji/:id', requireAuth, async (req, res) => {
 router.get('/api/slipgaji/stats', requireAuth, async (req, res) => {
   try {
     const { bulan, tahun } = req.query;
-    const slipList = await readJSON(SLIP_DATA_PATH);
-    const karyawanList = await readJSON(KARYAWAN_PATH);
+    const filter = {};
+    if (bulan) filter.bulan = parseInt(bulan);
+    if (tahun) filter.tahun = parseInt(tahun);
 
-    let filtered = slipList;
-    if (bulan) filtered = filtered.filter(s => s.bulan === parseInt(bulan));
-    if (tahun) filtered = filtered.filter(s => s.tahun === parseInt(tahun));
+    const [totalKaryawan, totalSlip, filtered] = await Promise.all([
+      Karyawan.countDocuments(),
+      SlipGaji.countDocuments(),
+      SlipGaji.find(filter).lean()
+    ]);
 
     const stats = {
-      totalKaryawan: karyawanList.length,
-      totalSlip: slipList.length,
+      totalKaryawan,
+      totalSlip,
       slipPeriodeIni: filtered.length,
       berhasil: filtered.filter(s => s.statusPengiriman === 'berhasil').length,
       gagal: filtered.filter(s => s.statusPengiriman === 'gagal').length,
@@ -269,8 +241,7 @@ router.get('/api/slipgaji/stats', requireAuth, async (req, res) => {
 // POST /api/slipgaji/:id/generate-token - Buat token akses sementara
 router.post('/api/slipgaji/:id/generate-token', requireAuth, async (req, res) => {
   try {
-    const slipList = await readJSON(SLIP_DATA_PATH);
-    const slip = slipList.find(s => s.id === req.params.id);
+    const slip = await SlipGaji.findOne({ id: req.params.id });
     if (!slip) return res.status(404).json({ success: false, message: 'Slip tidak ditemukan.' });
 
     const token = generateAccessToken(req.params.id);

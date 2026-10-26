@@ -1,27 +1,30 @@
 // ============================================
-// AUTH ROUTES
+// AUTH ROUTES (MongoDB version)
 // Login, Logout, Change Password
 // ============================================
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const path = require('path');
-const { readJSON, writeJSON } = require('../utils/dataStore');
+const { Admin } = require('../utils/models');
 
 const router = express.Router();
-const ADMIN_DATA_PATH = path.join(__dirname, '../data/admin.json');
 
 // Inisialisasi admin default jika belum ada
 async function initAdmin() {
-  const admins = await readJSON(ADMIN_DATA_PATH);
-  if (!admins || admins.length === 0) {
-    const hashed = await bcrypt.hash('admin123', 12);
-    await writeJSON(ADMIN_DATA_PATH, [{
-      id: 'admin001',
-      username: 'admin',
-      passwordHash: hashed,
-      createdAt: new Date().toISOString()
-    }]);
-    console.log('✅ Admin default dibuat: username=admin, password=admin123');
+  try {
+    const count = await Admin.countDocuments();
+    if (count === 0) {
+      const hashed = await bcrypt.hash('admin123', 12);
+      await Admin.create({
+        id: 'admin001',
+        username: 'admin',
+        passwordHash: hashed,
+        createdAt: new Date()
+      });
+      console.log('✅ Admin default dibuat: username=admin, password=admin123');
+    }
+  } catch (err) {
+    console.error('Init admin error:', err.message);
   }
 }
 initAdmin();
@@ -42,8 +45,7 @@ router.post('/api/auth/login', async (req, res) => {
   }
 
   try {
-    const admins = await readJSON(ADMIN_DATA_PATH);
-    const admin = admins.find(a => a.username === username.trim());
+    const admin = await Admin.findOne({ username: username.trim() });
     if (!admin) {
       return res.status(401).json({ success: false, message: 'Username atau password salah.' });
     }
@@ -53,7 +55,6 @@ router.post('/api/auth/login', async (req, res) => {
       return res.status(401).json({ success: false, message: 'Username atau password salah.' });
     }
 
-    // Buat session
     req.session.userId = admin.id;
     req.session.username = admin.username;
     return res.json({ success: true, message: 'Login berhasil.', redirect: '/dashboard' });
@@ -82,16 +83,15 @@ router.post('/api/auth/change-password', async (req, res) => {
   }
 
   try {
-    const admins = await readJSON(ADMIN_DATA_PATH);
-    const idx = admins.findIndex(a => a.id === req.session.userId);
-    if (idx === -1) return res.status(404).json({ success: false, message: 'Admin tidak ditemukan.' });
+    const admin = await Admin.findOne({ id: req.session.userId });
+    if (!admin) return res.status(404).json({ success: false, message: 'Admin tidak ditemukan.' });
 
-    const valid = await bcrypt.compare(currentPassword, admins[idx].passwordHash);
+    const valid = await bcrypt.compare(currentPassword, admin.passwordHash);
     if (!valid) return res.status(401).json({ success: false, message: 'Password saat ini salah.' });
 
-    admins[idx].passwordHash = await bcrypt.hash(newPassword, 12);
-    admins[idx].updatedAt = new Date().toISOString();
-    await writeJSON(ADMIN_DATA_PATH, admins);
+    admin.passwordHash = await bcrypt.hash(newPassword, 12);
+    admin.updatedAt = new Date();
+    await admin.save();
     return res.json({ success: true, message: 'Password berhasil diperbarui.' });
   } catch (err) {
     console.error('Change password error:', err);
