@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login — PayRoll WhatsApp Manager</title>
+  <title>Login — Balole Billiard Sport & Cafe</title>
   <meta name="description" content="Login admin untuk mengelola slip gaji karyawan">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -96,22 +96,30 @@
     }
 
     .login-logo {
-      width: 58px;
-      height: 58px;
-      background: linear-gradient(135deg, #0284c7, #38bdf8);
-      border-radius: 18px;
+      width: 76px;
+      height: 76px;
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 20px;
       display: flex;
       align-items: center;
       justify-content: center;
-      color: #ffffff;
       margin: 0 auto 16px;
-      box-shadow: 0 10px 25px -4px rgba(2, 132, 199, 0.35);
+      overflow: hidden;
+      box-shadow: 0 10px 25px -4px rgba(15, 23, 42, 0.12);
       animation: logoFloat 4s ease-in-out infinite alternate;
+      padding: 4px;
+    }
+
+    .login-logo img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
     }
 
     @keyframes logoFloat {
-      from { transform: translateY(0); box-shadow: 0 8px 20px -4px rgba(2, 132, 199, 0.3); }
-      to { transform: translateY(-4px); box-shadow: 0 14px 28px -4px rgba(2, 132, 199, 0.45); }
+      from { transform: translateY(0); box-shadow: 0 8px 20px -4px rgba(15, 23, 42, 0.08); }
+      to { transform: translateY(-4px); box-shadow: 0 14px 28px -4px rgba(15, 23, 42, 0.15); }
     }
 
     .login-brand h1 {
@@ -326,13 +334,10 @@
   <div class="login-container">
     <div class="login-brand">
       <div class="login-logo">
-        <svg class="icon" style="width:28px;height:28px" viewBox="0 0 24 24">
-          <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
-          <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
-        </svg>
+        <img src="/public/img/logo.png" alt="Balole Billiard Sport & Cafe">
       </div>
-      <h1>PayRoll Manager</h1>
-      <p>Sistem Manajemen Slip Gaji & WhatsApp</p>
+      <h1>Balole Billiard Sport &amp; Cafe</h1>
+      <p>PayRoll Manager</p>
     </div>
 
     <div class="login-card">
@@ -404,7 +409,7 @@
     </div>
 
     <div class="login-footer">
-      PayRoll WhatsApp Manager &copy; 2026
+      Balole Billiard Sport &amp; Cafe &copy; 2026
     </div>
   </div>
 
