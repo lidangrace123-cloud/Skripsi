@@ -1,6 +1,7 @@
 node_modules/
 .env
 uploads/slipgaji/*.pdf
+uploads/**/*.pdf
 *.log
 .DS_Store
 Thumbs.db
