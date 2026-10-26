@@ -1,0 +1,14 @@
+{
+  "install": "npm ci --omit=dev --no-audit --no-fund",
+  "start": "node server.js",
+  "watch": {
+    "ignore": [
+      "node_modules",
+      "uploads",
+      "data",
+      ".git"
+    ],
+    "restart": false,
+    "throttle": 1000
+  }
+}
