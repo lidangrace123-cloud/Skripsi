@@ -8,6 +8,9 @@
     "dev": "node --watch server.js",
     "build": "echo \"No build step required\""
   },
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "keywords": ["payroll", "whatsapp", "fonnte", "slip-gaji"],
   "author": "",
   "license": "ISC",
