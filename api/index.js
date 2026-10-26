@@ -16,6 +16,6 @@ module.exports = async (req, res) => {
     return app(req, res);
   } catch (err) {
     console.error('Vercel handler error:', err);
-    res.status(500).send('Database connection error');
+    res.status(500).send('Database connection error: ' + err.message);
   }
 };
