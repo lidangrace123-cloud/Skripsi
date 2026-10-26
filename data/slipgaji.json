@@ -1,20 +1,5 @@
 [
   {
-    "id": "e314c37611dc829a8f644ae54ace0801",
-    "karyawanId": "EMP296884R9I",
-    "namaKaryawan": "Aurelia Amanda",
-    "namaFile": "e314c37611dc829a8f644ae54ace0801.pdf",
-    "originalName": "Aurelia Amanda_Oktober_2026.pdf",
-    "bulan": 10,
-    "bulanNama": "Oktober",
-    "tahun": 2026,
-    "ukuran": 3560,
-    "uploadedAt": "2026-10-26T08:42:11.651Z",
-    "statusPengiriman": "berhasil",
-    "errorPengiriman": null,
-    "lastSentAt": "2026-10-26T08:42:19.931Z"
-  },
-  {
     "id": "26072f8306b7349b7786559714d5ff32",
     "karyawanId": "EMP001",
     "namaKaryawan": "Grace Lidan",
@@ -43,5 +28,18 @@
     "statusPengiriman": "berhasil",
     "errorPengiriman": null,
     "lastSentAt": "2026-10-26T08:42:24.224Z"
+  },
+  {
+    "id": "42136649213b14889992c049308bde7d",
+    "karyawanId": "EMP296884R9I",
+    "namaKaryawan": "Aurelia Amanda",
+    "namaFile": "42136649213b14889992c049308bde7d.pdf",
+    "originalName": "Aurelia Amanda_Oktober_2026.pdf",
+    "bulan": 10,
+    "bulanNama": "Oktober",
+    "tahun": 2026,
+    "ukuran": 3560,
+    "uploadedAt": "2026-10-26T10:03:16.008Z",
+    "statusPengiriman": "belum_dikirim"
   }
 ]

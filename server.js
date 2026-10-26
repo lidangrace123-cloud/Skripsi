@@ -9,6 +9,8 @@ const path = require('path');
 const fs = require('fs');
 const helmet = require('helmet');
 const morgan = require('morgan');
+const connectMongo = require('connect-mongo');
+const MongoStore = connectMongo.default || connectMongo.MongoStore || connectMongo;
 const { connectDB } = require('./utils/db');
 
 const authRoutes = require('./routes/auth');
@@ -58,10 +60,12 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // ============================================
-// Session Configuration
+// Session Configuration (Stored in MongoDB Atlas)
 // ============================================
-app.use(session({
-  secret: process.env.SESSION_SECRET || 'fallback_secret_please_change',
+app.set('trust proxy', 1);
+
+const sessionOptions = {
+  secret: process.env.SESSION_SECRET || 'payroll_secret_2026_ganti_sebelum_produksi',
   resave: false,
   saveUninitialized: false,
   cookie: {
@@ -69,7 +73,17 @@ app.use(session({
     httpOnly: true,
     maxAge: 8 * 60 * 60 * 1000 // 8 jam
   }
-}));
+};
+
+if (process.env.MONGODB_URI) {
+  sessionOptions.store = MongoStore.create({
+    mongoUrl: process.env.MONGODB_URI,
+    collectionName: 'sessions',
+    ttl: 8 * 60 * 60 // 8 jam
+  });
+}
+
+app.use(session(sessionOptions));
 
 // ============================================
 // Static Files (CSS, JS, public assets only)
@@ -113,28 +127,35 @@ app.use((err, req, res, next) => {
 // ============================================
 // Start Server (connect DB first)
 // ============================================
-connectDB()
-  .then(() => {
-    app.listen(PORT, () => {
-      console.log('');
-      console.log('╔══════════════════════════════════════════════╗');
-      console.log('║      PayRoll WhatsApp Manager - AKTIF        ║');
-      console.log('╠══════════════════════════════════════════════╣');
-      console.log(`║  URL: http://localhost:${PORT}                 ║`);
-      console.log(`║  Mode: ${process.env.NODE_ENV || 'development'}                        ║`);
-      console.log('╠══════════════════════════════════════════════╣');
-      console.log('║  Login: admin / admin123                     ║');
-      console.log('╚══════════════════════════════════════════════╝');
-      console.log('');
-      if (!process.env.FONNTE_TOKEN || process.env.FONNTE_TOKEN === 'ISI_TOKEN_FONNTE_ANDA_DI_SINI') {
-        console.warn('⚠️  PERINGATAN: FONNTE_TOKEN belum dikonfigurasi di .env');
+if (!process.env.VERCEL) {
+  connectDB()
+    .then(async () => {
+      if (authRoutes.initAdmin) {
+        await authRoutes.initAdmin();
       }
-      if (process.env.APP_BASE_URL === 'http://localhost:3000') {
-        console.warn('⚠️  PERINGATAN: APP_BASE_URL masih localhost. Gunakan URL HTTPS untuk pengiriman WhatsApp.');
-      }
+      app.listen(PORT, () => {
+        console.log('');
+        console.log('╔══════════════════════════════════════════════╗');
+        console.log('║      PayRoll WhatsApp Manager - AKTIF        ║');
+        console.log('╠══════════════════════════════════════════════╣');
+        console.log(`║  URL: http://localhost:${PORT}                 ║`);
+        console.log(`║  Mode: ${process.env.NODE_ENV || 'development'}                        ║`);
+        console.log('╠══════════════════════════════════════════════╣');
+        console.log('║  Login: admin / admin123                     ║');
+        console.log('╚══════════════════════════════════════════════╝');
+        console.log('');
+        if (!process.env.FONNTE_TOKEN || process.env.FONNTE_TOKEN === 'ISI_TOKEN_FONNTE_ANDA_DI_SINI') {
+          console.warn('⚠️  PERINGATAN: FONNTE_TOKEN belum dikonfigurasi di .env');
+        }
+        if (process.env.APP_BASE_URL === 'http://localhost:3000') {
+          console.warn('⚠️  PERINGATAN: APP_BASE_URL masih localhost. Gunakan URL HTTPS untuk pengiriman WhatsApp.');
+        }
+      });
+    })
+    .catch(err => {
+      console.error('❌ Gagal koneksi database, server tidak jalan:', err.message);
+      process.exit(1);
     });
-  })
-  .catch(err => {
-    console.error('❌ Gagal koneksi database, server tidak jalan:', err.message);
-    process.exit(1);
-  });
+}
+
+module.exports = app;

@@ -27,7 +27,7 @@ async function initAdmin() {
     console.error('Init admin error:', err.message);
   }
 }
-initAdmin();
+router.initAdmin = initAdmin;
 
 // GET /login
 router.get('/login', (req, res) => {
