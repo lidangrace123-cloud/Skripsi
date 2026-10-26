@@ -2,7 +2,8 @@
   {
     "id": "admin001",
     "username": "admin",
-    "passwordHash": "$2b$12$MKhCuPsI.JhSCjVwCl0N5eCctIufrlX5f6toI5a1Qv3zwEY4H8N6G",
-    "createdAt": "2026-10-25T08:49:37.675Z"
+    "passwordHash": "$2b$12$T8kJdc02RjP9M9qqVldQhesAM9l6E2hml9DyPo2fQJLW6tbXkFEFW",
+    "createdAt": "2026-10-25T08:49:37.675Z",
+    "updatedAt": "2026-10-25T11:01:36.590Z"
   }
 ]

@@ -6,19 +6,24 @@
   <title>Dashboard — PayRoll WhatsApp Manager</title>
   <meta name="description" content="Dashboard admin pengelolaan slip gaji karyawan">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/public/css/style.css">
 </head>
 <body>
 <div id="toast-container"></div>
-<div id="sidebar-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:99" class=""></div>
+<div id="sidebar-overlay" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,0.45);backdrop-filter:blur(4px);z-index:99"></div>
 
 <div class="app-layout">
   <!-- SIDEBAR -->
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-header">
       <div class="sidebar-logo">
-        <div class="sidebar-logo-icon">💼</div>
+        <div class="sidebar-logo-icon">
+          <svg class="icon icon-lg" viewBox="0 0 24 24">
+            <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
+            <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+          </svg>
+        </div>
         <div class="sidebar-logo-text">
           <span class="app-name">PayRoll Manager</span>
           <span class="app-sub">WhatsApp Sender</span>
@@ -29,21 +34,58 @@
     <nav class="sidebar-nav">
       <div class="nav-label">Menu Utama</div>
       <a class="nav-item active" data-href="/dashboard" href="/dashboard">
-        <span class="nav-icon">📊</span> Dashboard
+        <span class="nav-icon">
+          <svg class="icon" viewBox="0 0 24 24">
+            <line x1="18" y1="20" x2="18" y2="10"/>
+            <line x1="12" y1="20" x2="12" y2="4"/>
+            <line x1="6" y1="20" x2="6" y2="14"/>
+          </svg>
+        </span>
+        Dashboard
       </a>
       <a class="nav-item" data-href="/karyawan" href="/karyawan">
-        <span class="nav-icon">👥</span> Manajemen Karyawan
+        <span class="nav-icon">
+          <svg class="icon" viewBox="0 0 24 24">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+        </span>
+        Manajemen Karyawan
       </a>
       <a class="nav-item" data-href="/slipgaji" href="/slipgaji">
-        <span class="nav-icon">📄</span> Slip Gaji
+        <span class="nav-icon">
+          <svg class="icon" viewBox="0 0 24 24">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+            <polyline points="10 9 9 9 8 9"/>
+          </svg>
+        </span>
+        Slip Gaji
       </a>
 
       <div class="nav-label" style="margin-top:16px">Pengaturan</div>
       <button class="nav-item" onclick="showChangePassword()">
-        <span class="nav-icon">🔑</span> Ganti Password
+        <span class="nav-icon">
+          <svg class="icon" viewBox="0 0 24 24">
+            <circle cx="7.5" cy="15.5" r="4.5"/>
+            <path d="M11 12l8-8h3v3l-2 2v2l-2 2z"/>
+          </svg>
+        </span>
+        Ganti Password
       </button>
       <button class="nav-item danger" onclick="logout()">
-        <span class="nav-icon">🚪</span> Logout
+        <span class="nav-icon">
+          <svg class="icon" viewBox="0 0 24 24">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+            <polyline points="16 17 21 12 16 7"/>
+            <line x1="21" y1="12" x2="9" y2="12"/>
+          </svg>
+        </span>
+        Logout
       </button>
     </nav>
 
@@ -62,11 +104,17 @@
   <div class="main-content">
     <!-- TOP BAR -->
     <div class="topbar">
-      <div style="display:flex;align-items:center;gap:12px">
-        <button class="hamburger" id="hamburger-btn" aria-label="Toggle sidebar">☰</button>
+      <div style="display:flex;align-items:center;gap:14px">
+        <button class="hamburger" id="hamburger-btn" aria-label="Toggle sidebar">
+          <svg class="icon" viewBox="0 0 24 24">
+            <line x1="3" y1="12" x2="21" y2="12"/>
+            <line x1="3" y1="6" x2="21" y2="6"/>
+            <line x1="3" y1="18" x2="21" y2="18"/>
+          </svg>
+        </button>
         <div class="topbar-left">
           <h1>Dashboard</h1>
-          <p>Selamat datang kembali, <span id="topbar-username">Admin</span> 👋</p>
+          <p>Selamat datang kembali, <span id="topbar-username" style="font-weight:700;color:var(--primary)">Admin</span></p>
         </div>
       </div>
       <div class="topbar-right">
@@ -77,7 +125,14 @@
           <select class="filter-select" id="filter-tahun">
             <option value="">-- Semua Tahun --</option>
           </select>
-          <button class="btn btn-primary btn-sm" onclick="loadStats()">🔄 Refresh</button>
+          <button class="btn btn-primary btn-sm" onclick="loadStats()">
+            <svg class="icon icon-sm" viewBox="0 0 24 24">
+              <polyline points="23 4 23 10 17 10"/>
+              <polyline points="1 20 1 14 7 14"/>
+              <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+            </svg>
+            Refresh
+          </button>
         </div>
       </div>
     </div>
@@ -87,32 +142,69 @@
       <!-- STATS GRID -->
       <div class="stats-grid" id="stats-grid">
         <div class="stat-card primary">
-          <div class="stat-icon">👥</div>
+          <div class="stat-icon">
+            <svg class="icon icon-lg" viewBox="0 0 24 24">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+          </div>
           <div class="stat-value" id="stat-karyawan">-</div>
           <div class="stat-label">Total Karyawan</div>
         </div>
         <div class="stat-card secondary">
-          <div class="stat-icon">📄</div>
+          <div class="stat-icon">
+            <svg class="icon icon-lg" viewBox="0 0 24 24">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="16" y1="13" x2="8" y2="13"/>
+              <line x1="16" y1="17" x2="8" y2="17"/>
+            </svg>
+          </div>
           <div class="stat-value" id="stat-slip-total">-</div>
           <div class="stat-label">Total File Slip</div>
         </div>
         <div class="stat-card info">
-          <div class="stat-icon">📅</div>
+          <div class="stat-icon">
+            <svg class="icon icon-lg" viewBox="0 0 24 24">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+              <line x1="16" y1="2" x2="16" y2="6"/>
+              <line x1="8" y1="2" x2="8" y2="6"/>
+              <line x1="3" y1="10" x2="21" y2="10"/>
+            </svg>
+          </div>
           <div class="stat-value" id="stat-slip-periode">-</div>
           <div class="stat-label">Slip Periode Ini</div>
         </div>
         <div class="stat-card success">
-          <div class="stat-icon">✅</div>
+          <div class="stat-icon">
+            <svg class="icon icon-lg" viewBox="0 0 24 24">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+          </div>
           <div class="stat-value" id="stat-berhasil">-</div>
           <div class="stat-label">Terkirim Berhasil</div>
         </div>
         <div class="stat-card danger">
-          <div class="stat-icon">❌</div>
+          <div class="stat-icon">
+            <svg class="icon icon-lg" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="15" y1="9" x2="9" y2="15"/>
+              <line x1="9" y1="9" x2="15" y2="15"/>
+            </svg>
+          </div>
           <div class="stat-value" id="stat-gagal">-</div>
           <div class="stat-label">Pengiriman Gagal</div>
         </div>
         <div class="stat-card warning">
-          <div class="stat-icon">🔄</div>
+          <div class="stat-icon">
+            <svg class="icon icon-lg" viewBox="0 0 24 24">
+              <path d="M23 4v6h-6"/>
+              <path d="M1 20v-6h6"/>
+              <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+            </svg>
+          </div>
           <div class="stat-value" id="stat-diproses">-</div>
           <div class="stat-label">Diproses</div>
         </div>
@@ -123,17 +215,35 @@
         <!-- Quick Links -->
         <div class="card">
           <div class="card-header">
-            <span class="card-title">🚀 Aksi Cepat</span>
+            <span class="card-title">
+              <svg class="icon" viewBox="0 0 24 24">
+                <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/>
+                <path d="M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/>
+              </svg>
+              Aksi Cepat
+            </span>
           </div>
-          <div class="card-body" style="display:flex;flex-direction:column;gap:10px">
+          <div class="card-body" style="display:flex;flex-direction:column;gap:12px">
             <a href="/karyawan" class="btn btn-secondary" style="justify-content:flex-start">
-              <span>👥</span> Kelola Data Karyawan
+              <svg class="icon" viewBox="0 0 24 24">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+              </svg>
+              Kelola Data Karyawan
             </a>
             <a href="/slipgaji" class="btn btn-secondary" style="justify-content:flex-start">
-              <span>📤</span> Upload Slip Gaji
+              <svg class="icon" viewBox="0 0 24 24">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="17 8 12 3 7 8"/>
+                <line x1="12" y1="3" x2="12" y2="15"/>
+              </svg>
+              Upload Slip Gaji
             </a>
             <a href="/slipgaji" class="btn btn-success" style="justify-content:flex-start">
-              <span>📱</span> Kirim Slip via WhatsApp
+              <svg class="icon" viewBox="0 0 24 24">
+                <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+              </svg>
+              Kirim Slip via WhatsApp
             </a>
           </div>
         </div>
@@ -141,12 +251,27 @@
         <!-- Riwayat Pengiriman Terbaru -->
         <div class="card">
           <div class="card-header">
-            <span class="card-title">📋 Riwayat Pengiriman Terbaru</span>
+            <span class="card-title">
+              <svg class="icon" viewBox="0 0 24 24">
+                <line x1="8" y1="6" x2="21" y2="6"/>
+                <line x1="8" y1="12" x2="21" y2="12"/>
+                <line x1="8" y1="18" x2="21" y2="18"/>
+                <line x1="3" y1="6" x2="3.01" y2="6"/>
+                <line x1="3" y1="12" x2="3.01" y2="12"/>
+                <line x1="3" y1="18" x2="3.01" y2="18"/>
+              </svg>
+              Riwayat Pengiriman Terbaru
+            </span>
           </div>
           <div class="card-body" style="padding:0">
             <div id="recent-history">
-              <div class="empty-state" style="padding:24px">
-                <div class="empty-icon">📭</div>
+              <div class="empty-state" style="padding:28px">
+                <div class="empty-icon">
+                  <svg class="icon icon-xl" viewBox="0 0 24 24">
+                    <polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/>
+                    <path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/>
+                  </svg>
+                </div>
                 <p>Memuat riwayat...</p>
               </div>
             </div>
@@ -157,12 +282,24 @@
       <!-- PERIOD OVERVIEW -->
       <div class="card">
         <div class="card-header">
-          <span class="card-title">📊 Status Pengiriman Periode Ini</span>
+          <span class="card-title">
+            <svg class="icon" viewBox="0 0 24 24">
+              <line x1="18" y1="20" x2="18" y2="10"/>
+              <line x1="12" y1="20" x2="12" y2="4"/>
+              <line x1="6" y1="20" x2="6" y2="14"/>
+            </svg>
+            Status Pengiriman Periode Ini
+          </span>
         </div>
         <div class="card-body">
           <div id="period-overview">
             <div class="empty-state">
-              <div class="empty-icon">📈</div>
+              <div class="empty-icon">
+                <svg class="icon icon-xl" viewBox="0 0 24 24">
+                  <path d="M3 3v18h18"/>
+                  <path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"/>
+                </svg>
+              </div>
               <p>Pilih bulan dan tahun untuk melihat statistik.</p>
             </div>
           </div>
@@ -176,8 +313,16 @@
 <div class="modal-overlay" id="modal-password">
   <div class="modal">
     <div class="modal-header">
-      <span class="modal-title">🔑 Ganti Password</span>
-      <button class="modal-close" onclick="closeModal('modal-password')">✕</button>
+      <span class="modal-title">
+        <svg class="icon" viewBox="0 0 24 24">
+          <circle cx="7.5" cy="15.5" r="4.5"/>
+          <path d="M11 12l8-8h3v3l-2 2v2l-2 2z"/>
+        </svg>
+        Ganti Password
+      </span>
+      <button class="modal-close" onclick="closeModal('modal-password')">
+        <svg class="icon icon-sm" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
     </div>
     <div class="modal-body">
       <div class="form-group">
@@ -195,7 +340,14 @@
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeModal('modal-password')">Batal</button>
-      <button class="btn btn-primary" onclick="changePassword()">💾 Simpan</button>
+      <button class="btn btn-primary" onclick="changePassword()">
+        <svg class="icon icon-sm" viewBox="0 0 24 24">
+          <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+          <polyline points="17 21 17 13 7 13 7 21"/>
+          <polyline points="7 3 7 8 15 8"/>
+        </svg>
+        Simpan
+      </button>
     </div>
   </div>
 </div>
@@ -261,7 +413,13 @@ async function loadStats() {
 function renderPeriodOverview(d, bulan, tahun) {
   const el = document.getElementById('period-overview');
   if (!bulan && !tahun) {
-    el.innerHTML = `<div class="empty-state"><div class="empty-icon">📈</div><p>Pilih bulan dan tahun untuk melihat statistik.</p></div>`;
+    el.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">
+          <svg class="icon icon-xl" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"/></svg>
+        </div>
+        <p>Pilih bulan dan tahun untuk melihat statistik.</p>
+      </div>`;
     return;
   }
 
@@ -273,18 +431,24 @@ function renderPeriodOverview(d, bulan, tahun) {
   const bulanLabel = bulan ? BULAN_NAMES_FULL[parseInt(bulan)] : 'Semua';
   const tahunLabel = tahun || 'Semua';
 
+  const iconSuccess = '<svg class="icon icon-sm" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>';
+  const iconDanger = '<svg class="icon icon-sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>';
+  const iconClock = '<svg class="icon icon-sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
+
   el.innerHTML = `
-    <div style="margin-bottom:16px">
-      <p style="font-size:13px;color:var(--text-secondary)">
-        Periode: <strong style="color:var(--primary-light)">${bulanLabel} ${tahunLabel}</strong> — 
-        Total ${d.slipPeriodeIni} slip gaji
+    <div style="margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--border-light)">
+      <p style="font-size:13.5px;color:var(--text-secondary)">
+        Periode: <strong style="color:var(--primary);font-weight:700">${bulanLabel} ${tahunLabel}</strong> — 
+        Total <strong>${d.slipPeriodeIni}</strong> slip gaji
       </p>
     </div>
-    <div style="display:grid;gap:16px">
+    <div style="display:grid;gap:18px">
       <div>
         <div style="display:flex;justify-content:space-between;margin-bottom:6px">
-          <span style="font-size:13px;color:var(--accent)">✅ Berhasil</span>
-          <span style="font-size:13px;font-weight:600">${d.berhasil} / ${d.slipPeriodeIni}</span>
+          <span style="font-size:13px;color:var(--accent);font-weight:600;display:flex;align-items:center;gap:6px">
+            ${iconSuccess} Berhasil
+          </span>
+          <span style="font-size:13px;font-weight:700">${d.berhasil} / ${d.slipPeriodeIni} (${berhasilPct}%)</span>
         </div>
         <div class="progress-bar-wrap">
           <div class="progress-bar" style="width:${berhasilPct}%;background:linear-gradient(90deg,#10b981,#059669)"></div>
@@ -292,8 +456,10 @@ function renderPeriodOverview(d, bulan, tahun) {
       </div>
       <div>
         <div style="display:flex;justify-content:space-between;margin-bottom:6px">
-          <span style="font-size:13px;color:var(--danger)">❌ Gagal</span>
-          <span style="font-size:13px;font-weight:600">${d.gagal} / ${d.slipPeriodeIni}</span>
+          <span style="font-size:13px;color:var(--danger);font-weight:600;display:flex;align-items:center;gap:6px">
+            ${iconDanger} Gagal
+          </span>
+          <span style="font-size:13px;font-weight:700">${d.gagal} / ${d.slipPeriodeIni} (${gagalPct}%)</span>
         </div>
         <div class="progress-bar-wrap">
           <div class="progress-bar" style="width:${gagalPct}%;background:linear-gradient(90deg,#ef4444,#dc2626)"></div>
@@ -301,11 +467,13 @@ function renderPeriodOverview(d, bulan, tahun) {
       </div>
       <div>
         <div style="display:flex;justify-content:space-between;margin-bottom:6px">
-          <span style="font-size:13px;color:var(--text-muted)">⏳ Belum Dikirim</span>
-          <span style="font-size:13px;font-weight:600">${d.menunggu} / ${d.slipPeriodeIni}</span>
+          <span style="font-size:13px;color:var(--text-secondary);font-weight:600;display:flex;align-items:center;gap:6px">
+            ${iconClock} Belum Dikirim
+          </span>
+          <span style="font-size:13px;font-weight:700">${d.menunggu} / ${d.slipPeriodeIni} (${menungguPct}%)</span>
         </div>
         <div class="progress-bar-wrap">
-          <div class="progress-bar" style="width:${menungguPct}%;background:linear-gradient(90deg,#64748b,#475569)"></div>
+          <div class="progress-bar" style="width:${menungguPct}%;background:linear-gradient(90deg,#94a3b8,#64748b)"></div>
         </div>
       </div>
     </div>
@@ -318,15 +486,21 @@ async function loadRecentHistory() {
     const el = document.getElementById('recent-history');
 
     if (!res || !res.success || res.data.length === 0) {
-      el.innerHTML = `<div class="empty-state" style="padding:24px"><div class="empty-icon">📭</div><p>Belum ada riwayat pengiriman.</p></div>`;
+      el.innerHTML = `
+        <div class="empty-state" style="padding:28px">
+          <div class="empty-icon">
+            <svg class="icon icon-xl" viewBox="0 0 24 24"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
+          </div>
+          <p>Belum ada riwayat pengiriman.</p>
+        </div>`;
       return;
     }
 
     const rows = res.data.slice(0, 5).map(h => `
-      <div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+      <div style="padding:14px 20px;border-bottom:1px solid var(--border-light);display:flex;justify-content:space-between;align-items:center;transition:background 0.2s" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='transparent'">
         <div>
-          <div style="font-size:13px;font-weight:600">${h.namaKaryawan}</div>
-          <div style="font-size:11px;color:var(--text-muted)">${formatDateShort(h.sentAt)}</div>
+          <div style="font-size:13.5px;font-weight:700;color:var(--text-primary)">${h.namaKaryawan}</div>
+          <div style="font-size:11.5px;color:var(--text-muted);margin-top:2px">${formatDateShort(h.sentAt)}</div>
         </div>
         ${statusBadge(h.status)}
       </div>

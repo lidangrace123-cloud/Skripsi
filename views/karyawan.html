@@ -6,19 +6,24 @@
   <title>Manajemen Karyawan — PayRoll WhatsApp Manager</title>
   <meta name="description" content="Kelola data karyawan dan nomor WhatsApp">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/public/css/style.css">
 </head>
 <body>
 <div id="toast-container"></div>
-<div id="sidebar-overlay" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:99;display:none"></div>
+<div id="sidebar-overlay" style="position:fixed;inset:0;background:rgba(15,23,42,0.45);backdrop-filter:blur(4px);z-index:99;display:none"></div>
 
 <div class="app-layout">
   <!-- SIDEBAR -->
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-header">
       <div class="sidebar-logo">
-        <div class="sidebar-logo-icon">💼</div>
+        <div class="sidebar-logo-icon">
+          <svg class="icon icon-lg" viewBox="0 0 24 24">
+            <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
+            <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+          </svg>
+        </div>
         <div class="sidebar-logo-text">
           <span class="app-name">PayRoll Manager</span>
           <span class="app-sub">WhatsApp Sender</span>
@@ -27,11 +32,50 @@
     </div>
     <nav class="sidebar-nav">
       <div class="nav-label">Menu Utama</div>
-      <a class="nav-item" data-href="/dashboard" href="/dashboard"><span class="nav-icon">📊</span> Dashboard</a>
-      <a class="nav-item active" data-href="/karyawan" href="/karyawan"><span class="nav-icon">👥</span> Manajemen Karyawan</a>
-      <a class="nav-item" data-href="/slipgaji" href="/slipgaji"><span class="nav-icon">📄</span> Slip Gaji</a>
+      <a class="nav-item" data-href="/dashboard" href="/dashboard">
+        <span class="nav-icon">
+          <svg class="icon" viewBox="0 0 24 24">
+            <line x1="18" y1="20" x2="18" y2="10"/>
+            <line x1="12" y1="20" x2="12" y2="4"/>
+            <line x1="6" y1="20" x2="6" y2="14"/>
+          </svg>
+        </span>
+        Dashboard
+      </a>
+      <a class="nav-item active" data-href="/karyawan" href="/karyawan">
+        <span class="nav-icon">
+          <svg class="icon" viewBox="0 0 24 24">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+        </span>
+        Manajemen Karyawan
+      </a>
+      <a class="nav-item" data-href="/slipgaji" href="/slipgaji">
+        <span class="nav-icon">
+          <svg class="icon" viewBox="0 0 24 24">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+            <polyline points="10 9 9 9 8 9"/>
+          </svg>
+        </span>
+        Slip Gaji
+      </a>
       <div class="nav-label" style="margin-top:16px">Pengaturan</div>
-      <button class="nav-item danger" onclick="logout()"><span class="nav-icon">🚪</span> Logout</button>
+      <button class="nav-item danger" onclick="logout()">
+        <span class="nav-icon">
+          <svg class="icon" viewBox="0 0 24 24">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+            <polyline points="16 17 21 12 16 7"/>
+            <line x1="21" y1="12" x2="9" y2="12"/>
+          </svg>
+        </span>
+        Logout
+      </button>
     </nav>
     <div class="sidebar-footer">
       <div class="user-info">
@@ -47,32 +91,50 @@
   <!-- MAIN CONTENT -->
   <div class="main-content">
     <div class="topbar">
-      <div style="display:flex;align-items:center;gap:12px">
-        <button class="hamburger" id="hamburger-btn">☰</button>
+      <div style="display:flex;align-items:center;gap:14px">
+        <button class="hamburger" id="hamburger-btn" aria-label="Toggle sidebar">
+          <svg class="icon" viewBox="0 0 24 24">
+            <line x1="3" y1="12" x2="21" y2="12"/>
+            <line x1="3" y1="6" x2="21" y2="6"/>
+            <line x1="3" y1="18" x2="21" y2="18"/>
+          </svg>
+        </button>
         <div class="topbar-left">
           <h1>Manajemen Karyawan</h1>
           <p>Kelola data dan nomor WhatsApp karyawan</p>
         </div>
       </div>
       <button class="btn btn-primary" onclick="openAddModal()">
-        ➕ Tambah Karyawan
+        <svg class="icon icon-sm" viewBox="0 0 24 24">
+          <line x1="12" y1="5" x2="12" y2="19"/>
+          <line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        Tambah Karyawan
       </button>
     </div>
 
     <div class="page-content">
       <!-- Search Bar -->
-      <div class="card" style="margin-bottom:20px">
+      <div class="card" style="margin-bottom:24px">
         <div class="card-body" style="padding:16px 20px">
-          <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
-            <input
-              type="text"
-              id="search-input"
-              class="form-control"
-              placeholder="🔍 Cari nama atau nomor WhatsApp..."
-              style="max-width:360px"
-              oninput="filterTable()"
-            >
-            <span id="count-label" style="font-size:13px;color:var(--text-muted)">Memuat...</span>
+          <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap">
+            <div style="position:relative;flex:1;max-width:380px">
+              <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#94a3b8;pointer-events:none">
+                <svg class="icon icon-sm" viewBox="0 0 24 24">
+                  <circle cx="11" cy="11" r="8"/>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                </svg>
+              </span>
+              <input
+                type="text"
+                id="search-input"
+                class="form-control"
+                placeholder="Cari nama atau nomor WhatsApp..."
+                style="padding-left:36px"
+                oninput="filterTable()"
+              >
+            </div>
+            <span id="count-label" style="font-size:13px;color:var(--text-muted);font-weight:600">Memuat...</span>
           </div>
         </div>
       </div>
@@ -80,8 +142,23 @@
       <!-- Table Card -->
       <div class="card">
         <div class="card-header">
-          <span class="card-title">👥 Daftar Karyawan</span>
-          <button class="btn btn-secondary btn-sm" onclick="loadKaryawan()">🔄 Refresh</button>
+          <span class="card-title">
+            <svg class="icon" viewBox="0 0 24 24">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+            Daftar Karyawan
+          </span>
+          <button class="btn btn-secondary btn-sm" onclick="loadKaryawan()">
+            <svg class="icon icon-sm" viewBox="0 0 24 24">
+              <polyline points="23 4 23 10 17 10"/>
+              <polyline points="1 20 1 14 7 14"/>
+              <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+            </svg>
+            Refresh
+          </button>
         </div>
         <div class="table-wrap">
           <table id="karyawan-table">
@@ -91,13 +168,21 @@
                 <th>Nama Karyawan</th>
                 <th>Nomor WhatsApp</th>
                 <th>Terdaftar</th>
-                <th style="width:160px">Aksi</th>
+                <th style="width:140px">Aksi</th>
               </tr>
             </thead>
             <tbody id="karyawan-body">
               <tr>
                 <td colspan="5">
-                  <div class="empty-state"><div class="empty-icon">⏳</div><p>Memuat data...</p></div>
+                  <div class="empty-state">
+                    <div class="empty-icon">
+                      <svg class="icon icon-xl" viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="10"/>
+                        <polyline points="12 6 12 12 16 14"/>
+                      </svg>
+                    </div>
+                    <p>Memuat data...</p>
+                  </div>
                 </td>
               </tr>
             </tbody>
@@ -112,8 +197,16 @@
 <div class="modal-overlay" id="modal-karyawan">
   <div class="modal">
     <div class="modal-header">
-      <span class="modal-title" id="modal-karyawan-title">➕ Tambah Karyawan</span>
-      <button class="modal-close" onclick="closeModal('modal-karyawan')">✕</button>
+      <span class="modal-title" id="modal-karyawan-title">
+        <svg class="icon" viewBox="0 0 24 24">
+          <line x1="12" y1="5" x2="12" y2="19"/>
+          <line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        Tambah Karyawan
+      </span>
+      <button class="modal-close" onclick="closeModal('modal-karyawan')">
+        <svg class="icon icon-sm" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
     </div>
     <div class="modal-body">
       <input type="hidden" id="edit-id">
@@ -137,14 +230,21 @@
           maxlength="20"
           oninput="autoFormatPhone(this)"
         >
-        <div style="font-size:11px;color:var(--text-muted);margin-top:4px">
+        <div style="font-size:11.5px;color:var(--text-muted);margin-top:5px">
           Format: 6281234567890 (62 + nomor tanpa 0 pertama)
         </div>
       </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeModal('modal-karyawan')">Batal</button>
-      <button class="btn btn-primary" id="save-btn" onclick="saveKaryawan()">💾 Simpan</button>
+      <button class="btn btn-primary" id="save-btn" onclick="saveKaryawan()">
+        <svg class="icon icon-sm" viewBox="0 0 24 24">
+          <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+          <polyline points="17 21 17 13 7 13 7 21"/>
+          <polyline points="7 3 7 8 15 8"/>
+        </svg>
+        Simpan
+      </button>
     </div>
   </div>
 </div>
@@ -153,9 +253,24 @@
 <script>
 let karyawanData = [];
 
+const iconEditSvg = '<svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
+const iconTrashSvg = '<svg class="icon icon-sm" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>';
+const iconPhoneSvg = '<svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>';
+const iconSaveSvg = '<svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>';
+
 async function loadKaryawan() {
   const body = document.getElementById('karyawan-body');
-  body.innerHTML = `<tr><td colspan="5"><div class="empty-state"><div class="empty-icon">⏳</div><p>Memuat data...</p></div></td></tr>`;
+  body.innerHTML = `
+    <tr>
+      <td colspan="5">
+        <div class="empty-state">
+          <div class="empty-icon">
+            <svg class="icon icon-xl" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
+          <p>Memuat data...</p>
+        </div>
+      </td>
+    </tr>`;
 
   const res = await apiRequest('GET', '/api/karyawan');
   if (!res || !res.success) {
@@ -172,35 +287,45 @@ function renderTable(data) {
   document.getElementById('count-label').textContent = `${data.length} karyawan`;
 
   if (data.length === 0) {
-    body.innerHTML = `<tr><td colspan="5"><div class="empty-state"><div class="empty-icon">👥</div><p>Belum ada data karyawan. <a href="#" onclick="openAddModal()" style="color:var(--primary-light)">Tambahkan sekarang</a></p></div></td></tr>`;
+    body.innerHTML = `
+      <tr>
+        <td colspan="5">
+          <div class="empty-state">
+            <div class="empty-icon">
+              <svg class="icon icon-xl" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </div>
+            <p>Belum ada data karyawan. <a href="#" onclick="openAddModal()" style="color:var(--primary);font-weight:600">Tambahkan sekarang</a></p>
+          </div>
+        </td>
+      </tr>`;
     return;
   }
 
   body.innerHTML = data.map((k, i) => `
     <tr>
-      <td style="color:var(--text-muted);font-size:12px">${i + 1}</td>
+      <td style="color:var(--text-muted);font-size:12px;font-weight:600">${i + 1}</td>
       <td>
-        <div style="display:flex;align-items:center;gap:10px">
-          <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#0ea5e9);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#0284c7,#38bdf8);color:#ffffff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;box-shadow:0 2px 6px rgba(2,132,199,0.2)">
             ${k.nama.charAt(0).toUpperCase()}
           </div>
           <div>
-            <div style="font-weight:600">${escapeHtml(k.nama)}</div>
+            <div style="font-weight:700;color:var(--text-primary)">${escapeHtml(k.nama)}</div>
             <div style="font-size:11px;color:var(--text-muted)">ID: ${k.id}</div>
           </div>
         </div>
       </td>
       <td>
-        <div style="display:flex;align-items:center;gap:6px">
-          <span style="font-size:16px">📱</span>
-          <span style="font-family:monospace;font-size:13px">+${k.nomor_whatsapp}</span>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="color:var(--primary);display:flex">${iconPhoneSvg}</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--text-secondary);font-weight:500">+${k.nomor_whatsapp}</span>
         </div>
       </td>
-      <td style="font-size:12px;color:var(--text-muted)">${formatDateShort(k.createdAt)}</td>
+      <td style="font-size:12.5px;color:var(--text-muted)">${formatDateShort(k.createdAt)}</td>
       <td>
         <div class="td-actions">
-          <button class="btn btn-warning btn-sm btn-icon" onclick="openEditModal('${k.id}')" title="Edit">✏️</button>
-          <button class="btn btn-danger btn-sm btn-icon" onclick="deleteKaryawan('${k.id}', '${escapeHtml(k.nama)}')" title="Hapus">🗑️</button>
+          <button class="btn btn-secondary btn-sm btn-icon" onclick="openEditModal('${k.id}')" title="Edit" style="color:var(--primary)">${iconEditSvg}</button>
+          <button class="btn btn-secondary btn-sm btn-icon" onclick="deleteKaryawan('${k.id}', '${escapeHtml(k.nama)}')" title="Hapus" style="color:var(--danger)">${iconTrashSvg}</button>
         </div>
       </td>
     </tr>
@@ -218,11 +343,16 @@ function filterTable() {
 }
 
 function openAddModal() {
-  document.getElementById('modal-karyawan-title').textContent = '➕ Tambah Karyawan';
+  document.getElementById('modal-karyawan-title').innerHTML = `
+    <svg class="icon" viewBox="0 0 24 24">
+      <line x1="12" y1="5" x2="12" y2="19"/>
+      <line x1="5" y1="12" x2="19" y2="12"/>
+    </svg>
+    Tambah Karyawan`;
   document.getElementById('edit-id').value = '';
   document.getElementById('input-nama').value = '';
   document.getElementById('input-nomor').value = '';
-  document.getElementById('save-btn').textContent = '💾 Simpan';
+  document.getElementById('save-btn').innerHTML = `${iconSaveSvg} Simpan`;
   document.getElementById('modal-karyawan').classList.add('active');
   setTimeout(() => document.getElementById('input-nama').focus(), 100);
 }
@@ -230,11 +360,16 @@ function openAddModal() {
 function openEditModal(id) {
   const k = karyawanData.find(x => x.id === id);
   if (!k) return;
-  document.getElementById('modal-karyawan-title').textContent = '✏️ Edit Karyawan';
+  document.getElementById('modal-karyawan-title').innerHTML = `
+    <svg class="icon" viewBox="0 0 24 24">
+      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+    </svg>
+    Edit Karyawan`;
   document.getElementById('edit-id').value = k.id;
   document.getElementById('input-nama').value = k.nama;
   document.getElementById('input-nomor').value = k.nomor_whatsapp;
-  document.getElementById('save-btn').textContent = '💾 Perbarui';
+  document.getElementById('save-btn').innerHTML = `${iconSaveSvg} Perbarui`;
   document.getElementById('modal-karyawan').classList.add('active');
   setTimeout(() => document.getElementById('input-nama').focus(), 100);
 }
@@ -273,7 +408,7 @@ async function saveKaryawan() {
   }
 
   btn.disabled = false;
-  btn.textContent = id ? '💾 Perbarui' : '💾 Simpan';
+  btn.innerHTML = id ? `${iconSaveSvg} Perbarui` : `${iconSaveSvg} Simpan`;
 
   if (res && res.success) {
     showToast('success', 'Berhasil', res.message);

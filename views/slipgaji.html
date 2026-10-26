@@ -6,57 +6,103 @@
   <title>Slip Gaji — PayRoll WhatsApp Manager</title>
   <meta name="description" content="Kelola dan kirim slip gaji via WhatsApp">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/public/css/style.css">
   <style>
-    .file-list { display: flex; flex-direction: column; gap: 4px; margin-top: 8px; }
-    .file-item {
-      display: flex; align-items: center; gap: 8px;
-      padding: 8px 12px;
-      background: rgba(99,102,241,0.06);
-      border: 1px solid rgba(99,102,241,0.15);
-      border-radius: 8px;
-      font-size: 12px;
+    .file-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 10px;
     }
-    .file-item .fi-name { flex:1; color: var(--text-secondary); font-weight:500; }
-    .file-item .fi-size { color: var(--text-muted); }
-    .file-item .fi-remove { background:none;border:none;color:var(--danger);cursor:pointer;font-size:14px;padding:0 }
+    .file-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      background: #f0f9ff;
+      border: 1px solid #bae6fd;
+      border-radius: var(--radius-sm);
+      font-size: 12.5px;
+      transition: var(--transition-fast);
+    }
+    .file-item:hover {
+      background: #e0f2fe;
+    }
+    .file-item .fi-name {
+      flex: 1;
+      color: var(--text-primary);
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .file-item .fi-size {
+      color: var(--text-muted);
+      font-size: 11.5px;
+    }
+    .file-item .fi-remove {
+      background: none;
+      border: none;
+      color: var(--danger);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2px;
+      border-radius: 4px;
+      transition: var(--transition-fast);
+    }
+    .file-item .fi-remove:hover {
+      background: #fee2e2;
+    }
 
     .send-progress {
       background: var(--bg-card);
       border: 1px solid var(--border);
       border-radius: var(--radius-lg);
-      padding: 20px;
-      margin-bottom: 20px;
+      padding: 22px;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow-sm);
+      animation: fadeIn 0.3s ease;
     }
 
     .job-detail-item {
-      display: flex; align-items: center; gap: 10px;
-      padding: 10px 0;
-      border-bottom: 1px solid rgba(148,163,184,0.06);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 11px 8px;
+      border-bottom: 1px solid var(--border-light);
       font-size: 13px;
     }
-    .job-detail-item:last-child { border-bottom: none; }
+    .job-detail-item:last-child {
+      border-bottom: none;
+    }
 
     #pdf-frame {
       width: 100%;
       height: 75vh;
-      border: none;
-      border-radius: 8px;
-      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      background: #ffffff;
     }
   </style>
 </head>
 <body>
 <div id="toast-container"></div>
-<div id="sidebar-overlay" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:99;display:none"></div>
+<div id="sidebar-overlay" style="position:fixed;inset:0;background:rgba(15,23,42,0.45);backdrop-filter:blur(4px);z-index:99;display:none"></div>
 
 <div class="app-layout">
   <!-- SIDEBAR -->
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-header">
       <div class="sidebar-logo">
-        <div class="sidebar-logo-icon">💼</div>
+        <div class="sidebar-logo-icon">
+          <svg class="icon icon-lg" viewBox="0 0 24 24">
+            <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
+            <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+          </svg>
+        </div>
         <div class="sidebar-logo-text">
           <span class="app-name">PayRoll Manager</span>
           <span class="app-sub">WhatsApp Sender</span>
@@ -65,11 +111,50 @@
     </div>
     <nav class="sidebar-nav">
       <div class="nav-label">Menu Utama</div>
-      <a class="nav-item" data-href="/dashboard" href="/dashboard"><span class="nav-icon">📊</span> Dashboard</a>
-      <a class="nav-item" data-href="/karyawan" href="/karyawan"><span class="nav-icon">👥</span> Manajemen Karyawan</a>
-      <a class="nav-item active" data-href="/slipgaji" href="/slipgaji"><span class="nav-icon">📄</span> Slip Gaji</a>
+      <a class="nav-item" data-href="/dashboard" href="/dashboard">
+        <span class="nav-icon">
+          <svg class="icon" viewBox="0 0 24 24">
+            <line x1="18" y1="20" x2="18" y2="10"/>
+            <line x1="12" y1="20" x2="12" y2="4"/>
+            <line x1="6" y1="20" x2="6" y2="14"/>
+          </svg>
+        </span>
+        Dashboard
+      </a>
+      <a class="nav-item" data-href="/karyawan" href="/karyawan">
+        <span class="nav-icon">
+          <svg class="icon" viewBox="0 0 24 24">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+        </span>
+        Manajemen Karyawan
+      </a>
+      <a class="nav-item active" data-href="/slipgaji" href="/slipgaji">
+        <span class="nav-icon">
+          <svg class="icon" viewBox="0 0 24 24">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+            <polyline points="10 9 9 9 8 9"/>
+          </svg>
+        </span>
+        Slip Gaji
+      </a>
       <div class="nav-label" style="margin-top:16px">Pengaturan</div>
-      <button class="nav-item danger" onclick="logout()"><span class="nav-icon">🚪</span> Logout</button>
+      <button class="nav-item danger" onclick="logout()">
+        <span class="nav-icon">
+          <svg class="icon" viewBox="0 0 24 24">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+            <polyline points="16 17 21 12 16 7"/>
+            <line x1="21" y1="12" x2="9" y2="12"/>
+          </svg>
+        </span>
+        Logout
+      </button>
     </nav>
     <div class="sidebar-footer">
       <div class="user-info">
@@ -85,77 +170,132 @@
   <!-- MAIN CONTENT -->
   <div class="main-content">
     <div class="topbar">
-      <div style="display:flex;align-items:center;gap:12px">
-        <button class="hamburger" id="hamburger-btn">☰</button>
+      <div style="display:flex;align-items:center;gap:14px">
+        <button class="hamburger" id="hamburger-btn" aria-label="Toggle sidebar">
+          <svg class="icon" viewBox="0 0 24 24">
+            <line x1="3" y1="12" x2="21" y2="12"/>
+            <line x1="3" y1="6" x2="21" y2="6"/>
+            <line x1="3" y1="18" x2="21" y2="18"/>
+          </svg>
+        </button>
         <div class="topbar-left">
           <h1>Slip Gaji</h1>
           <p>Upload, preview, dan kirim slip gaji via WhatsApp</p>
         </div>
       </div>
       <div style="display:flex;gap:10px;flex-wrap:wrap">
-        <button class="btn btn-primary" onclick="openUploadModal()">📤 Tambah File</button>
+        <button class="btn btn-secondary" onclick="openUploadModal()">
+          <svg class="icon icon-sm" viewBox="0 0 24 24">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="17 8 12 3 7 8"/>
+            <line x1="12" y1="3" x2="12" y2="15"/>
+          </svg>
+          Tambah File
+        </button>
         <button class="btn btn-success" onclick="openKirimModal()" id="btn-kirim">
-          📱 Kirim ke WhatsApp
+          <svg class="icon icon-sm" viewBox="0 0 24 24">
+            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+          </svg>
+          Kirim ke WhatsApp
         </button>
       </div>
     </div>
 
     <div class="page-content">
       <!-- FILTER BAR -->
-      <div class="card" style="margin-bottom:20px">
+      <div class="card" style="margin-bottom:24px">
         <div class="card-body" style="padding:16px 20px">
           <div class="filter-bar">
-            <label style="font-size:13px;color:var(--text-secondary);font-weight:500">Filter Periode:</label>
+            <label style="font-size:13px;color:var(--text-secondary);font-weight:600">Filter Periode:</label>
             <select class="filter-select" id="filter-bulan">
               <option value="">-- Semua Bulan --</option>
             </select>
             <select class="filter-select" id="filter-tahun">
               <option value="">-- Semua Tahun --</option>
             </select>
-            <button class="btn btn-secondary btn-sm" onclick="loadSlipGaji()">🔍 Filter</button>
-            <button class="btn btn-secondary btn-sm" onclick="clearFilter()">✕ Reset</button>
-            <span id="filter-count" style="font-size:13px;color:var(--text-muted);margin-left:8px"></span>
+            <button class="btn btn-primary btn-sm" onclick="loadSlipGaji()">
+              <svg class="icon icon-sm" viewBox="0 0 24 24">
+                <circle cx="11" cy="11" r="8"/>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+              Filter
+            </button>
+            <button class="btn btn-secondary btn-sm" onclick="clearFilter()">
+              <svg class="icon icon-sm" viewBox="0 0 24 24">
+                <line x1="18" y1="6" x2="6" y2="18"/>
+                <line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+              Reset
+            </button>
+            <span id="filter-count" style="font-size:13px;color:var(--text-muted);font-weight:600;margin-left:6px"></span>
           </div>
         </div>
       </div>
 
       <!-- JOB PROGRESS (hidden by default) -->
       <div id="job-progress-wrap" style="display:none" class="send-progress">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-          <span style="font-size:14px;font-weight:700">📱 Proses Pengiriman WhatsApp</span>
-          <button class="btn btn-secondary btn-sm" onclick="toggleJobDetail()">📋 Detail</button>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+          <span style="font-size:14.5px;font-weight:800;color:var(--text-primary);display:flex;align-items:center;gap:8px">
+            <svg class="icon" style="color:var(--primary)" viewBox="0 0 24 24">
+              <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+            </svg>
+            Proses Pengiriman WhatsApp
+          </span>
+          <button class="btn btn-secondary btn-sm" onclick="toggleJobDetail()">
+            <svg class="icon icon-sm" viewBox="0 0 24 24">
+              <line x1="8" y1="6" x2="21" y2="6"/>
+              <line x1="8" y1="12" x2="21" y2="12"/>
+              <line x1="8" y1="18" x2="21" y2="18"/>
+            </svg>
+            Detail
+          </button>
         </div>
         <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px">
-          <div style="text-align:center;padding:12px;background:rgba(99,102,241,0.08);border-radius:10px">
-            <div style="font-size:22px;font-weight:800" id="jp-total">0</div>
-            <div style="font-size:11px;color:var(--text-muted)">Total</div>
+          <div style="text-align:center;padding:12px;background:#f0f9ff;border:1px solid #bae6fd;border-radius:12px">
+            <div style="font-size:22px;font-weight:800;color:var(--primary)" id="jp-total">0</div>
+            <div style="font-size:11px;color:var(--text-secondary);font-weight:600">Total</div>
           </div>
-          <div style="text-align:center;padding:12px;background:rgba(16,185,129,0.08);border-radius:10px">
+          <div style="text-align:center;padding:12px;background:#ecfdf5;border:1px solid #a7f3d0;border-radius:12px">
             <div style="font-size:22px;font-weight:800;color:var(--accent)" id="jp-berhasil">0</div>
-            <div style="font-size:11px;color:var(--text-muted)">Berhasil</div>
+            <div style="font-size:11px;color:var(--text-secondary);font-weight:600">Berhasil</div>
           </div>
-          <div style="text-align:center;padding:12px;background:rgba(239,68,68,0.08);border-radius:10px">
+          <div style="text-align:center;padding:12px;background:#fef2f2;border:1px solid #fecaca;border-radius:12px">
             <div style="font-size:22px;font-weight:800;color:var(--danger)" id="jp-gagal">0</div>
-            <div style="font-size:11px;color:var(--text-muted)">Gagal</div>
+            <div style="font-size:11px;color:var(--text-secondary);font-weight:600">Gagal</div>
           </div>
-          <div style="text-align:center;padding:12px;background:rgba(245,158,11,0.08);border-radius:10px">
-            <div style="font-size:22px;font-weight:800;color:var(--warning)" id="jp-menunggu">0</div>
-            <div style="font-size:11px;color:var(--text-muted)">Menunggu</div>
+          <div style="text-align:center;padding:12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px">
+            <div style="font-size:22px;font-weight:800;color:var(--text-muted)" id="jp-menunggu">0</div>
+            <div style="font-size:11px;color:var(--text-secondary);font-weight:600">Menunggu</div>
           </div>
         </div>
         <div class="progress-bar-wrap" style="margin-bottom:8px">
           <div class="progress-bar" id="jp-progress-bar" style="width:0%"></div>
         </div>
-        <div style="font-size:12px;color:var(--text-muted);text-align:right" id="jp-status-text">Memproses...</div>
-        <div id="job-detail-list" style="display:none;margin-top:16px;max-height:300px;overflow-y:auto"></div>
+        <div style="font-size:12px;color:var(--text-muted);text-align:right;font-weight:600" id="jp-status-text">Memproses...</div>
+        <div id="job-detail-list" style="display:none;margin-top:16px;max-height:280px;overflow-y:auto;border-top:1px solid var(--border-light);padding-top:12px"></div>
       </div>
 
       <!-- TABLE -->
       <div class="card">
         <div class="card-header">
-          <span class="card-title">📄 Daftar File Slip Gaji</span>
+          <span class="card-title">
+            <svg class="icon" viewBox="0 0 24 24">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="16" y1="13" x2="8" y2="13"/>
+              <line x1="16" y1="17" x2="8" y2="17"/>
+            </svg>
+            Daftar File Slip Gaji
+          </span>
           <div style="display:flex;gap:8px">
-            <button class="btn btn-secondary btn-sm" onclick="loadSlipGaji()">🔄 Refresh</button>
+            <button class="btn btn-secondary btn-sm" onclick="loadSlipGaji()">
+              <svg class="icon icon-sm" viewBox="0 0 24 24">
+                <polyline points="23 4 23 10 17 10"/>
+                <polyline points="1 20 1 14 7 14"/>
+                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+              </svg>
+              Refresh
+            </button>
           </div>
         </div>
         <div class="table-wrap">
@@ -169,12 +309,20 @@
                 <th>Upload</th>
                 <th>Status</th>
                 <th>Alasan Gagal</th>
-                <th style="width:200px">Aksi</th>
+                <th style="width:190px">Aksi</th>
               </tr>
             </thead>
             <tbody id="slip-body">
               <tr><td colspan="8">
-                <div class="empty-state"><div class="empty-icon">⏳</div><p>Memuat data...</p></div>
+                <div class="empty-state">
+                  <div class="empty-icon">
+                    <svg class="icon icon-xl" viewBox="0 0 24 24">
+                      <circle cx="12" cy="12" r="10"/>
+                      <polyline points="12 6 12 12 16 14"/>
+                    </svg>
+                  </div>
+                  <p>Memuat data...</p>
+                </div>
               </td></tr>
             </tbody>
           </table>
@@ -188,8 +336,17 @@
 <div class="modal-overlay" id="modal-upload">
   <div class="modal modal-xl">
     <div class="modal-header">
-      <span class="modal-title">📤 Upload File Slip Gaji</span>
-      <button class="modal-close" onclick="closeModal('modal-upload')">✕</button>
+      <span class="modal-title">
+        <svg class="icon" viewBox="0 0 24 24">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="17 8 12 3 7 8"/>
+          <line x1="12" y1="3" x2="12" y2="15"/>
+        </svg>
+        Upload File Slip Gaji
+      </span>
+      <button class="modal-close" onclick="closeModal('modal-upload')">
+        <svg class="icon icon-sm" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
     </div>
     <div class="modal-body">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
@@ -212,8 +369,8 @@
         <select id="upload-karyawan" class="form-control">
           <option value="">-- Pilih jika nama file tidak sesuai format --</option>
         </select>
-        <div style="font-size:11px;color:var(--text-muted);margin-top:4px">
-          Format nama file: <code style="color:var(--primary-light)">NamaKaryawan_Bulan_Tahun.pdf</code>
+        <div style="font-size:11.5px;color:var(--text-muted);margin-top:5px">
+          Format nama file: <code style="color:var(--primary);background:var(--primary-soft);padding:2px 6px;border-radius:4px;font-family:'JetBrains Mono',monospace">NamaKaryawan_Bulan_Tahun.pdf</code>
           (contoh: Grace_Oktober_2026.pdf)
         </div>
       </div>
@@ -228,9 +385,13 @@
           ondragleave="handleDragLeave(event)"
           ondrop="handleDrop(event)"
         >
-          <div class="upload-icon">📁</div>
+          <div class="upload-icon">
+            <svg class="icon" style="width:36px;height:36px" viewBox="0 0 24 24">
+              <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+            </svg>
+          </div>
           <p><span>Klik untuk memilih file</span> atau seret file PDF ke sini</p>
-          <p style="font-size:11px;color:var(--text-muted);margin-top:6px">
+          <p style="font-size:11.5px;color:var(--text-muted);margin-top:6px">
             Mendukung beberapa file sekaligus. Maks. 10MB per file.
           </p>
         </div>
@@ -243,12 +404,19 @@
         <div class="progress-bar-wrap">
           <div class="progress-bar" id="upload-bar" style="width:0%"></div>
         </div>
-        <div id="upload-results" style="margin-top:10px;max-height:200px;overflow-y:auto;font-size:12px"></div>
+        <div id="upload-results" style="margin-top:12px;max-height:200px;overflow-y:auto;font-size:12.5px"></div>
       </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeModal('modal-upload')">Batal</button>
-      <button class="btn btn-primary" id="upload-btn" onclick="doUpload()">📤 Upload</button>
+      <button class="btn btn-primary" id="upload-btn" onclick="doUpload()">
+        <svg class="icon icon-sm" viewBox="0 0 24 24">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="17 8 12 3 7 8"/>
+          <line x1="12" y1="3" x2="12" y2="15"/>
+        </svg>
+        Upload
+      </button>
     </div>
   </div>
 </div>
@@ -257,11 +425,18 @@
 <div class="modal-overlay" id="modal-kirim">
   <div class="modal">
     <div class="modal-header">
-      <span class="modal-title">📱 Kirim Slip Gaji via WhatsApp</span>
-      <button class="modal-close" onclick="closeModal('modal-kirim')">✕</button>
+      <span class="modal-title">
+        <svg class="icon" viewBox="0 0 24 24">
+          <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+        </svg>
+        Kirim Slip Gaji via WhatsApp
+      </span>
+      <button class="modal-close" onclick="closeModal('modal-kirim')">
+        <svg class="icon icon-sm" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
     </div>
     <div class="modal-body">
-      <div style="background:rgba(99,102,241,0.06);border:1px solid rgba(99,102,241,0.15);border-radius:12px;padding:16px;margin-bottom:16px">
+      <div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:12px;padding:16px;margin-bottom:18px">
         <div id="kirim-summary" style="font-size:13px;color:var(--text-secondary);line-height:1.8">
           Memuat ringkasan...
         </div>
@@ -269,18 +444,19 @@
       <div class="form-group">
         <label class="form-label">Tanggal Pembayaran Gaji *</label>
         <input type="text" id="kirim-tanggal" class="form-control" placeholder="Contoh: 25 Oktober 2026">
-        <div style="font-size:11px;color:var(--text-muted);margin-top:4px">
+        <div style="font-size:11.5px;color:var(--text-muted);margin-top:5px">
           Tanggal ini akan dicantumkan dalam pesan WhatsApp yang dikirimkan.
         </div>
       </div>
-      <div style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:10px;padding:12px;font-size:12px;color:#fbbf24">
-        ⚠️ Pastikan token Fonnte API sudah dikonfigurasi di file .env dan APP_BASE_URL menggunakan URL HTTPS yang dapat diakses publik.
-      </div>
+
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeModal('modal-kirim')">Batal</button>
       <button class="btn btn-success" id="kirim-btn" onclick="doKirim()">
-        📱 Kirim Sekarang
+        <svg class="icon icon-sm" viewBox="0 0 24 24">
+          <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+        </svg>
+        Kirim Sekarang
       </button>
     </div>
   </div>
@@ -290,10 +466,25 @@
 <div class="modal-overlay" id="modal-preview">
   <div class="modal modal-xxl" style="height:90vh;display:flex;flex-direction:column">
     <div class="modal-header" style="flex-shrink:0">
-      <span class="modal-title" id="preview-title">📄 Preview PDF</span>
-      <div style="display:flex;gap:8px;align-items:center">
-        <button class="btn btn-secondary btn-sm" id="preview-download-btn">⬇️ Unduh</button>
-        <button class="modal-close" onclick="closePdfPreview()">✕</button>
+      <span class="modal-title" id="preview-title">
+        <svg class="icon" viewBox="0 0 24 24">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+        </svg>
+        Preview PDF
+      </span>
+      <div style="display:flex;gap:10px;align-items:center">
+        <button class="btn btn-secondary btn-sm" id="preview-download-btn">
+          <svg class="icon icon-sm" viewBox="0 0 24 24">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          Unduh
+        </button>
+        <button class="modal-close" onclick="closePdfPreview()">
+          <svg class="icon icon-sm" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
       </div>
     </div>
     <div style="flex:1;padding:16px;overflow:hidden">
@@ -306,6 +497,14 @@
 <script>
 const BULAN_NAMES_FULL = ['','Januari','Februari','Maret','April','Mei','Juni',
   'Juli','Agustus','September','Oktober','November','Desember'];
+
+const iconEyeSvg = '<svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
+const iconDownloadSvg = '<svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>';
+const iconRetrySvg = '<svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>';
+const iconTrashSvg = '<svg class="icon icon-sm" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>';
+const iconPdfDocSvg = '<svg class="icon icon-sm" viewBox="0 0 24 24" style="color:var(--primary)"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>';
+const iconUploadSvg = '<svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>';
+const iconSendSvg = '<svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>';
 
 let selectedFiles = [];
 let slipData = [];
@@ -372,7 +571,17 @@ async function loadSlipGaji() {
   if(p.length) url += '?'+p.join('&');
 
   const tbody = document.getElementById('slip-body');
-  tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state"><div class="empty-icon">⏳</div><p>Memuat data...</p></div></td></tr>`;
+  tbody.innerHTML = `
+    <tr>
+      <td colspan="8">
+        <div class="empty-state">
+          <div class="empty-icon">
+            <svg class="icon icon-xl" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
+          <p>Memuat data...</p>
+        </div>
+      </td>
+    </tr>`;
 
   const res = await apiRequest('GET', url);
   if(!res || !res.success) {
@@ -389,35 +598,50 @@ function renderSlipTable(data) {
   const tbody = document.getElementById('slip-body');
 
   if(data.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state"><div class="empty-icon">📄</div><p>Belum ada file slip gaji. <button onclick="openUploadModal()" class="btn btn-primary btn-sm" style="margin-left:8px">Upload Sekarang</button></p></div></td></tr>`;
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="8">
+          <div class="empty-state">
+            <div class="empty-icon">
+              <svg class="icon icon-xl" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            </div>
+            <p>Belum ada file slip gaji. <button onclick="openUploadModal()" class="btn btn-primary btn-sm" style="margin-left:8px">${iconUploadSvg} Upload Sekarang</button></p>
+          </div>
+        </td>
+      </tr>`;
     return;
   }
 
   tbody.innerHTML = data.map((s, i) => `
     <tr>
-      <td style="color:var(--text-muted);font-size:12px">${i+1}</td>
+      <td style="color:var(--text-muted);font-size:12px;font-weight:600">${i+1}</td>
       <td>
-        <div style="font-weight:600;font-size:13px">${escHtml(s.namaKaryawan)}</div>
+        <div style="font-weight:700;font-size:13.5px;color:var(--text-primary)">${escHtml(s.namaKaryawan)}</div>
         <div style="font-size:11px;color:var(--text-muted)">${s.karyawanId}</div>
       </td>
       <td>
-        <div style="font-size:13px;color:var(--text-secondary)">${escHtml(s.originalName)}</div>
-        <div style="font-size:11px;color:var(--text-muted)">${formatSize(s.ukuran)}</div>
+        <div style="display:flex;align-items:center;gap:8px">
+          ${iconPdfDocSvg}
+          <div>
+            <div style="font-size:13px;color:var(--text-primary);font-weight:500">${escHtml(s.originalName)}</div>
+            <div style="font-size:11px;color:var(--text-muted)">${formatSize(s.ukuran)}</div>
+          </div>
+        </div>
       </td>
       <td>
         <span class="badge badge-info">${s.bulanNama} ${s.tahun}</span>
       </td>
       <td style="font-size:12px;color:var(--text-muted)">${formatDateShort(s.uploadedAt)}</td>
       <td>${statusBadge(s.statusPengiriman)}</td>
-      <td style="font-size:11px;color:var(--danger);max-width:150px">
-        ${s.errorPengiriman ? `<span title="${escHtml(s.errorPengiriman)}">${s.errorPengiriman.slice(0,60)}${s.errorPengiriman.length>60?'...':''}</span>` : '-'}
+      <td style="font-size:11px;color:var(--danger);max-width:160px">
+        ${s.errorPengiriman ? `<span title="${escHtml(s.errorPengiriman)}">${escHtml(s.errorPengiriman.slice(0,60))}${s.errorPengiriman.length>60?'...':''}</span>` : '-'}
       </td>
       <td>
         <div class="td-actions">
-          <button class="btn btn-secondary btn-sm" onclick="previewPdf('${s.id}','${escHtml(s.originalName)}')" title="Preview">👁️</button>
-          <a class="btn btn-secondary btn-sm" href="/api/slipgaji/${s.id}/download" title="Unduh" download>⬇️</a>
-          ${s.statusPengiriman === 'gagal' ? `<button class="btn btn-warning btn-sm" onclick="retryKirim('${s.id}')" title="Kirim Ulang">🔄</button>` : ''}
-          <button class="btn btn-danger btn-sm" onclick="deleteSlip('${s.id}','${escHtml(s.originalName)}')" title="Hapus">🗑️</button>
+          <button class="btn btn-secondary btn-sm btn-icon" onclick="previewPdf('${s.id}','${escHtml(s.originalName)}')" title="Preview" style="color:var(--primary)">${iconEyeSvg}</button>
+          <a class="btn btn-secondary btn-sm btn-icon" href="/api/slipgaji/${s.id}/download" title="Unduh" download style="color:var(--text-secondary)">${iconDownloadSvg}</a>
+          ${s.statusPengiriman === 'gagal' ? `<button class="btn btn-secondary btn-sm btn-icon" onclick="retryKirim('${s.id}')" title="Kirim Ulang" style="color:var(--warning)">${iconRetrySvg}</button>` : ''}
+          <button class="btn btn-secondary btn-sm btn-icon" onclick="deleteSlip('${s.id}','${escHtml(s.originalName)}')" title="Hapus" style="color:var(--danger)">${iconTrashSvg}</button>
         </div>
       </td>
     </tr>
@@ -437,7 +661,7 @@ function openUploadModal() {
   document.getElementById('upload-progress').style.display = 'none';
   document.getElementById('file-input').value = '';
   document.getElementById('upload-btn').disabled = false;
-  document.getElementById('upload-btn').textContent = '📤 Upload';
+  document.getElementById('upload-btn').innerHTML = `${iconUploadSvg} Upload`;
   loadKaryawanOptions();
   document.getElementById('modal-upload').classList.add('active');
 }
@@ -489,10 +713,12 @@ function renderFileList() {
   if(!selectedFiles.length) { el.innerHTML = ''; return; }
   el.innerHTML = selectedFiles.map((f, i) => `
     <div class="file-item">
-      <span>📄</span>
+      ${iconPdfDocSvg}
       <span class="fi-name">${escHtml(f.name)}</span>
       <span class="fi-size">${formatSize(f.size)}</span>
-      <button class="fi-remove" onclick="removeFile(${i})" title="Hapus">✕</button>
+      <button class="fi-remove" onclick="removeFile(${i})" title="Hapus">
+        <svg class="icon icon-sm" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
     </div>
   `).join('');
 }
@@ -528,10 +754,14 @@ async function doUpload() {
     const res = await apiUpload('/api/slipgaji/upload', fd);
     progressBar.style.width = '100%';
 
+    const iconCheck = '<svg class="icon icon-sm" style="color:var(--accent)" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>';
+    const iconError = '<svg class="icon icon-sm" style="color:var(--danger)" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>';
+
     if(res && res.results) {
       resultsEl.innerHTML = res.results.map(r =>
-        `<div style="padding:4px 0;color:${r.success?'var(--accent)':'var(--danger)'}">
-          ${r.success ? '✅' : '❌'} ${escHtml(r.name)}: ${r.success ? 'Berhasil' : r.error}
+        `<div style="padding:6px 0;display:flex;align-items:center;gap:8px;color:${r.success?'var(--accent)':'var(--danger)'}">
+          ${r.success ? iconCheck : iconError}
+          <span><strong>${escHtml(r.name)}</strong>: ${r.success ? 'Berhasil' : r.error}</span>
         </div>`
       ).join('');
 
@@ -544,7 +774,7 @@ async function doUpload() {
   }
 
   btn.disabled = false;
-  btn.textContent = '📤 Upload';
+  btn.innerHTML = `${iconUploadSvg} Upload`;
   selectedFiles = [];
   renderFileList();
 }
@@ -573,10 +803,12 @@ async function openKirimModal() {
   const sudahBerhasil = total - belumDikirim;
 
   document.getElementById('kirim-summary').innerHTML = `
-    <strong style="color:var(--text-primary)">Periode:</strong> ${bulanLabel} ${tahun}<br>
-    <strong style="color:var(--text-primary)">Total file:</strong> ${total} slip gaji<br>
-    <strong style="color:var(--accent)">Akan dikirim:</strong> ${belumDikirim} (belum terkirim berhasil)<br>
-    <strong style="color:var(--text-muted)">Sudah berhasil:</strong> ${sudahBerhasil} (tidak akan dikirim ulang)
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div><strong style="color:var(--text-primary)">Periode:</strong> ${bulanLabel} ${tahun}</div>
+      <div><strong style="color:var(--text-primary)">Total file:</strong> ${total} slip</div>
+      <div><strong style="color:var(--accent)">Akan dikirim:</strong> ${belumDikirim} (belum berhasil)</div>
+      <div><strong style="color:var(--text-muted)">Sudah terkirim:</strong> ${sudahBerhasil} (dilewati)</div>
+    </div>
   `;
 
   document.getElementById('modal-kirim').classList.add('active');
@@ -598,7 +830,7 @@ async function doKirim() {
   });
 
   btn.disabled = false;
-  btn.textContent = '📱 Kirim Sekarang';
+  btn.innerHTML = `${iconSendSvg} Kirim Sekarang`;
 
   if(res && res.success) {
     closeModal('modal-kirim');
@@ -653,19 +885,23 @@ function updateJobUI(job) {
   document.getElementById('jp-progress-bar').style.width = pct + '%';
 
   const statusText = job.status === 'selesai'
-    ? `✅ Selesai — ${job.berhasil} berhasil, ${job.gagal} gagal`
-    : `🔄 Mengirim... (${job.berhasil + job.gagal}/${job.total})`;
+    ? `Selesai — ${job.berhasil} berhasil, ${job.gagal} gagal`
+    : `Mengirim... (${job.berhasil + job.gagal}/${job.total})`;
   document.getElementById('jp-status-text').textContent = statusText;
 
   // Detail list
+  const iconSuccess = '<svg class="icon icon-sm" style="color:var(--accent)" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>';
+  const iconDanger = '<svg class="icon icon-sm" style="color:var(--danger)" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>';
+  const iconWait = '<svg class="icon icon-sm" style="color:var(--warning)" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
+
   const detailEl = document.getElementById('job-detail-list');
   if(job.details && job.details.length > 0) {
     detailEl.innerHTML = job.details.map(d => `
       <div class="job-detail-item">
-        <span>${d.status === 'berhasil' ? '✅' : d.status === 'gagal' ? '❌' : '🔄'}</span>
-        <span style="flex:1;font-weight:500">${escHtml(d.namaKaryawan)}</span>
-        <span style="font-size:11px;color:var(--text-muted)">${escHtml(d.originalName || '')}</span>
-        ${d.error ? `<span style="font-size:11px;color:var(--danger);max-width:200px">${escHtml(d.error)}</span>` : ''}
+        <span>${d.status === 'berhasil' ? iconSuccess : d.status === 'gagal' ? iconDanger : iconWait}</span>
+        <span style="flex:1;font-weight:600;color:var(--text-primary)">${escHtml(d.namaKaryawan)}</span>
+        <span style="font-size:11.5px;color:var(--text-muted)">${escHtml(d.originalName || '')}</span>
+        ${d.error ? `<span style="font-size:11.5px;color:var(--danger);max-width:200px">${escHtml(d.error)}</span>` : ''}
       </div>
     `).join('');
   }
@@ -677,7 +913,12 @@ function previewPdf(id, name) {
   const title = document.getElementById('preview-title');
   const dlBtn = document.getElementById('preview-download-btn');
 
-  title.textContent = `📄 ${name}`;
+  title.innerHTML = `
+    <svg class="icon" viewBox="0 0 24 24">
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+      <polyline points="14 2 14 8 20 8"/>
+    </svg>
+    ${escHtml(name)}`;
   frame.src = `/api/slipgaji/${id}/preview`;
   dlBtn.onclick = () => { window.open(`/api/slipgaji/${id}/download`, '_blank'); };
   document.getElementById('modal-preview').classList.add('active');

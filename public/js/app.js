@@ -1,6 +1,7 @@
 // ============================================
 // GLOBAL APP UTILITIES
 // Toast, API helper, Sidebar, etc.
+// Minimalist Vector Icons (1-Color)
 // ============================================
 
 // ============ TOAST NOTIFICATIONS ============
@@ -9,16 +10,16 @@ function showToast(type, title, message, duration = 4000) {
   if (!container) return;
 
   const icons = {
-    success: '✅',
-    error: '❌',
-    warning: '⚠️',
-    info: 'ℹ️'
+    success: '<svg class="icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>',
+    error: '<svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>',
+    warning: '<svg class="icon" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
+    info: '<svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>'
   };
 
   const toast = document.createElement('div');
   toast.className = `toast toast-${type}`;
   toast.innerHTML = `
-    <span class="toast-icon">${icons[type] || 'ℹ️'}</span>
+    <span class="toast-icon">${icons[type] || icons.info}</span>
     <div class="toast-content">
       <div class="toast-title">${title}</div>
       ${message ? `<div class="toast-message">${message}</div>` : ''}
@@ -123,11 +124,16 @@ function formatSize(bytes) {
 
 // ============ STATUS BADGE ============
 function statusBadge(status) {
+  const iconSuccess = '<svg class="icon icon-sm" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>';
+  const iconDanger = '<svg class="icon icon-sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>';
+  const iconWaiting = '<svg class="icon icon-sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
+  const iconProcess = '<svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>';
+
   const map = {
-    berhasil: ['badge-success', '✅ Terkirim'],
-    gagal: ['badge-danger', '❌ Gagal'],
-    belum_dikirim: ['badge-secondary', '⏳ Belum Dikirim'],
-    diproses: ['badge-warning', '🔄 Diproses']
+    berhasil: ['badge-success', `${iconSuccess} Terkirim`],
+    gagal: ['badge-danger', `${iconDanger} Gagal`],
+    belum_dikirim: ['badge-secondary', `${iconWaiting} Belum Dikirim`],
+    diproses: ['badge-warning', `${iconProcess} Diproses`]
   };
   const [cls, label] = map[status] || ['badge-secondary', status || '-'];
   return `<span class="badge ${cls}">${label}</span>`;
@@ -144,7 +150,10 @@ function showConfirm(title, message, onConfirm) {
   modal.innerHTML = `
     <div class="modal" style="max-width:420px">
       <div class="modal-header">
-        <span class="modal-title">⚠️ ${title}</span>
+        <span class="modal-title">
+          <svg class="icon" viewBox="0 0 24 24" style="color:var(--warning)"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          ${title}
+        </span>
       </div>
       <div class="modal-body">
         <p style="color:var(--text-secondary);font-size:14px;line-height:1.7">${message}</p>
