@@ -23,6 +23,7 @@ async function uploadPDF(buffer, publicId) {
       {
         public_id: publicId,
         resource_type: 'raw',   // 'raw' untuk non-image (PDF)
+        access_mode: 'public',
         folder: 'wasender-slipgaji',
         format: 'pdf'
       },
